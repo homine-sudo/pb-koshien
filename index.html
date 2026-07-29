@@ -484,13 +484,19 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   </div>
 
   <div class="card">
-    <div class="card-t">③ 試合結果の入力 <span class="sub">勝ったら「勝」・負けたら「敗退」</span></div>
+    <div class="card-t">③ 試合結果の入力 <span class="sub">対戦表を使わないときの手入力</span></div>
+    <div id="res-warn"></div>
     <div class="chips" id="res-chips"></div>
     <div id="res-list"></div>
   </div>
 
   <div class="card">
-    <div class="card-t">④ みんなに共有</div>
+    <div class="card-t">④ 集計の点検 <span class="sub">数が合っているかを機械が確認します</span></div>
+    <div id="chk-body"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">⑤ みんなに共有</div>
     <p class="muted" style="margin:0 0 10px">下のリンクに最新の順位が入ります。LINEグループに貼ってください。<br>結果を更新したら、もう一度作り直して貼り直します。</p>
     <label class="lb">公開URL <span style="font-weight:400;color:var(--ink3)">（みんなが開くページのURL。手元のファイルで集計する場合は必須）</span></label>
     <input id="share-base" placeholder="https://……/pb.html" oninput="localStorage.setItem('pb_koshien_base',this.value.trim())">
@@ -502,7 +508,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   </div>
 
   <div class="card">
-    <div class="card-t">⑤ データの保存</div>
+    <div class="card-t">⑥ データの保存</div>
     <p class="muted" style="margin:0 0 10px">この端末のブラウザに自動保存されています。念のためファイルにも書き出せます。</p>
     <div class="btnrow">
       <button class="btn" onclick="exportJson()">ファイルに書き出す</button>
@@ -684,7 +690,7 @@ function go(pg){
 }
 function render(anim){
   renderRank(anim); renderProgress(); renderTeams(); renderPicks(); renderBracket();
-  if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); }
+  if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); renderIntegrity(); }
 }
 
 /* ---- 飛び賞 ---- */
@@ -1134,6 +1140,81 @@ function resetBracket(){
   if(!confirm('対戦表を空にします。入力した勝敗も消えますか？\n※学校の勝利数・敗退はそのまま残ります')) return;
   ST.matches = initMatches(); save(); render(); toast('対戦表を空にしました');
 }
+/* ============================================================
+   集計の整合性チェック（対戦表と勝ち数がズレていないか）
+   ============================================================ */
+function bracketDerived(){
+  const wins=new Array(N).fill(0), out=new Array(N).fill(false);
+  let decided=0;
+  (ST.matches||[]).forEach(m=>{
+    if(m.w==null) return;
+    decided++; wins[m.w]++;
+    const l=(m.w===m.a)?m.b:m.a;
+    if(l!=null) out[l]=true;
+  });
+  return {wins,out,decided};
+}
+function bracketInUse(){ return (ST.matches||[]).some(m=>m.a!=null||m.b!=null||m.w!=null); }
+function checkIntegrity(){
+  const p=[], d=bracketDerived();
+  const sumWins = ST.wins.reduce((a,b)=>a+(b||0),0);
+  const outCount= ST.out.filter(Boolean).length;
+
+  if(sumWins>TOTAL_GAMES) p.push({lv:'ng',t:`勝ち数の合計が ${sumWins} です。全${TOTAL_GAMES}試合を超えています`});
+  if(outCount>N-1)        p.push({lv:'ng',t:`敗退が ${outCount}校。最大 ${N-1}校のはずです`});
+  if(sumWins!==outCount)  p.push({lv:'warn',t:`勝ち数の合計 ${sumWins} と 敗退した校 ${outCount}校 が合いません（1試合＝1勝＋1敗退）`});
+  ST.wins.forEach((w,i)=>{ if(w>6) p.push({lv:'ng',t:`${TEAMS[i].name} が ${w}勝。1回戦から出ても最大6勝です`}); });
+  ST.wins.forEach((w,i)=>{ if(w>0 && ST.out[i] && !bracketInUse()) {} });
+
+  if(bracketInUse()){
+    const wd=[]; for(let i=0;i<N;i++) if(d.wins[i]!==(ST.wins[i]||0)) wd.push(`${TEAMS[i].name}（表${d.wins[i]}勝→集計${ST.wins[i]||0}勝）`);
+    if(wd.length) p.push({lv:'ng',fix:true,t:`対戦表と勝ち数が食い違っています ${wd.length}校：${wd.slice(0,3).join('・')}${wd.length>3?' ほか':''}`});
+    const od=[]; for(let i=0;i<N;i++) if(d.out[i]!==!!ST.out[i]) od.push(TEAMS[i].name);
+    if(od.length) p.push({lv:'ng',fix:true,t:`対戦表と敗退が食い違っています ${od.length}校：${od.slice(0,3).join('・')}${od.length>3?' ほか':''}`});
+    ROUNDS.forEach((rd,ri)=>{
+      const seen={}, dup=[];
+      ST.matches.forEach(m=>{ if(m.r!==ri) return; [m.a,m.b].forEach(x=>{ if(x==null) return; if(seen[x]) dup.push(TEAMS[x].name); seen[x]=1; }); });
+      if(dup.length) p.push({lv:'warn',t:`${rd.l}に同じ学校が2回入っています：${[...new Set(dup)].join('・')}`});
+    });
+    const bad=[];
+    ST.matches.forEach((m,mi)=>[m.a,m.b].forEach(x=>{
+      if(x==null) return;
+      if(ST.matches.some((mm,j)=> j<mi && mm.w!=null && mm.w!==x && (mm.a===x||mm.b===x))) bad.push(`${TEAMS[x].name}（${ROUNDS[m.r].l}）`);
+    }));
+    if(bad.length) p.push({lv:'ng',t:`負けた学校が次のラウンドに入っています：${[...new Set(bad)].slice(0,3).join('・')}`});
+  }
+  return {problems:p, sumWins, outCount, derived:d};
+}
+function recalcFromBracket(){
+  const d=bracketDerived();
+  const cur=ST.wins.reduce((a,b)=>a+(b||0),0);
+  if(!confirm(`対戦表の内容で勝ち数を作り直します。\n手で入れた勝敗は上書きされます。\n\n勝ち数の合計：${cur} → ${d.decided}`)) return;
+  ST.wins=d.wins; ST.out=d.out; _champShown=false;
+  save(); render(true); toast('対戦表に合わせました');
+}
+function renderIntegrity(){
+  const host=document.getElementById('chk-body'); if(!host) return;
+  const r=checkIntegrity();
+  const games=ST.wins.reduce((a,b)=>a+(b||0),0);
+  const alive=aliveCount();
+  const base=`
+    <div class="kv"><span class="k">終了した試合</span><span class="v">${games} / ${TOTAL_GAMES}</span></div>
+    <div class="kv"><span class="k">敗退した校</span><span class="v">${r.outCount} / ${N-1}</span></div>
+    <div class="kv"><span class="k">勝ち残っている校</span><span class="v">${alive} 校</span></div>
+    <div class="kv"><span class="k">対戦表で勝敗が入った試合</span><span class="v">${r.derived.decided} 試合</span></div>`;
+  if(!r.problems.length){
+    host.innerHTML = base + `<div class="vres ok" style="margin-top:10px"><b>✓ 食い違いはありません</b><br>
+      勝ち数・敗退・対戦表のすべてが揃っています。</div>`;
+    return;
+  }
+  const needFix = r.problems.some(x=>x.fix);
+  host.innerHTML = base + `
+    <div class="vres ng" style="margin-top:10px"><b>${r.problems.length}件 見つかりました</b>
+      <ul>${r.problems.map(x=>`<li>${x.lv==='ng'?'🚨':'⚠️'} ${esc(x.t)}</li>`).join('')}</ul></div>
+    ${needFix?`<div class="btnrow" style="margin-top:10px">
+      <button class="btn pri" onclick="recalcFromBracket()">対戦表に合わせて作り直す</button></div>`:''}`;
+}
+
 /* 学校を選ぶシート */
 let _mpTarget = null;
 function openMatchPick(mi, side){
@@ -1335,6 +1416,13 @@ function delPlayer(i){
    管理：結果入力
    ============================================================ */
 function renderResults(){
+  const warn = document.getElementById('res-warn');
+  if(warn) warn.innerHTML = bracketInUse()
+    ? `<div class="vres ng" style="margin-top:0;margin-bottom:10px">
+        <b>対戦表を使っています</b><br>
+        結果はできるだけ<b>「対戦表」タブ</b>で入れてください。ここで手入力すると対戦表とズレます。
+        ズレたら「④ 集計の点検」で直せます。</div>`
+    : '';
   const chips = document.getElementById('res-chips');
   chips.innerHTML = [['alive','勝ち残り'],['all','すべて'],['out','敗退']]
     .map(([k,l])=>`<button class="chip ${_resFilter===k?'on':''}" onclick="_resFilter='${k}';renderResults()">${l}</button>`).join('');
@@ -1400,7 +1488,8 @@ function flash(title, sub){
 let _champShown = false;
 function checkChamp(){
   const alive = aliveCount();
-  if(alive!==1 || totalGames()===0){ _champShown=false; return; }
+  // 全48試合が終わって、勝ち残りが1校になったときだけ＝早すぎる「優勝」を出さない
+  if(alive!==1 || totalGames()!==TOTAL_GAMES){ _champShown=false; return; }
   if(_champShown) return;
   _champShown = true;
   const ci = ST.out.findIndex(o=>!o);
