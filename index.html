@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#123A5E">
+<title>甲子園予想 2026夏</title>
+<style>
+:root{
+  --navy:#123A5E; --navy2:#1B4F7E; --ink:#1C1F23; --ink2:#4A5360; --ink3:#8A94A2;
+  --line:#E3E7EC; --line2:#CFD6DF; --bg:#F7F8FA; --panel:#FFFFFF;
+  --dirt:#B5763F; --gold:#C8A24A; --red:#C53030; --green:#2F7D4F; --blue:#2C6FB5;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Segoe UI",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:14px; line-height:1.6;
+  padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));
+}
+h1,h2,h3{margin:0;font-weight:700}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+table{border-collapse:collapse;width:100%}
+
+/* ---- header ---- */
+.hdr{
+  position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+  box-shadow:0 1px 0 rgba(0,0,0,.15);
+}
+.hdr-t{font-size:15px;letter-spacing:.06em;display:flex;align-items:baseline;gap:8px}
+.hdr-t .yr{font-size:11px;opacity:.75;letter-spacing:.12em}
+.hdr-s{font-size:11px;opacity:.8;margin-top:2px}
+.hdr-badge{
+  display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;
+  background:rgba(255,255,255,.16);margin-left:6px;vertical-align:middle;
+}
+
+/* ---- viewer banner ---- */
+.vbar{background:#EAF1F8;border-bottom:1px solid var(--line);padding:7px 14px;font-size:11.5px;color:var(--navy2);display:flex;gap:8px;align-items:center;justify-content:space-between}
+.vbar a{color:var(--navy2)}
+
+/* ---- layout ---- */
+.wrap{max-width:820px;margin:0 auto;padding:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card-t{font-size:12px;letter-spacing:.05em;color:var(--ink2);font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:10px;padding-left:8px;border-left:3px solid var(--navy)}
+.card-t .sub{font-weight:400;color:var(--ink3);font-size:11px;letter-spacing:0}
+.muted{color:var(--ink3);font-size:11.5px}
+
+/* ---- nav ---- */
+.nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;
+  background:var(--navy);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.nav button{
+  flex:1;background:none;border:0;color:rgba(255,255,255,.6);
+  padding:9px 2px 8px;font-size:10.5px;line-height:1.35;text-align:center;
+}
+.nav button .ic{display:block;font-size:16px;line-height:1.1;margin-bottom:1px}
+.nav button.on{color:#fff}
+.nav button.on .ic{color:var(--gold)}
+
+/* ---- ranking ---- */
+.rk{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.rk:last-child{border-bottom:0}
+.rk-no{width:26px;text-align:center;font-size:15px;font-weight:700;color:var(--ink3);flex:none}
+.rk.top1 .rk-no{color:var(--gold)}
+.rk.top2 .rk-no,.rk.top3 .rk-no{color:var(--navy2)}
+.rk-b{flex:1;min-width:0}
+.rk-nm{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.rk-bar{height:5px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
+.rk-bar i{display:block;height:100%;background:var(--navy2);border-radius:3px}
+.rk.top1 .rk-bar i{background:var(--gold)}
+.rk-p{text-align:right;flex:none;min-width:64px}
+.rk-p b{font-size:17px;font-variant-numeric:tabular-nums}
+.rk-p span{display:block;font-size:10px;color:var(--ink3)}
+.chev{color:var(--line2);font-size:16px;flex:none}
+
+/* ---- team rows ---- */
+.tm{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line)}
+.tm:last-child{border-bottom:0}
+.tm-no{width:22px;font-size:10.5px;color:var(--ink3);text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.tm-b{flex:1;min-width:0}
+.tm-nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm-pf{font-size:10.5px;color:var(--ink3)}
+.tm.out .tm-nm,.tm.out .tm-pf{color:var(--ink3);text-decoration:line-through;text-decoration-color:var(--line2)}
+.wpill{font-size:10.5px;padding:1px 7px;border-radius:9px;background:#EAF1F8;color:var(--navy2);font-weight:700;flex:none}
+.wpill.z{background:#F0F2F5;color:var(--ink3)}
+.wpill.out{background:#FBEBEB;color:var(--red)}
+
+/* ---- buttons ---- */
+.btn{border:1px solid var(--line2);background:#fff;color:var(--ink);border-radius:7px;padding:7px 12px;font-size:12.5px;font-weight:600}
+.btn:active{background:#F0F2F5}
+.btn.pri{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.dan{border-color:#E3B7B7;color:var(--red)}
+.btn.sm{padding:4px 10px;font-size:11.5px;min-height:32px}
+.btn:disabled{opacity:.45}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---- form ---- */
+textarea,input,select{
+  width:100%;font-family:inherit;font-size:13px;padding:9px 10px;
+  border:1px solid var(--line2);border-radius:7px;background:#fff;color:var(--ink);
+}
+textarea{min-height:150px;line-height:1.5;resize:vertical}
+label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin:10px 0 4px}
+
+/* ---- validation ---- */
+.vres{margin-top:10px;border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.65}
+.vres.ok{background:#EDF6F0;border:1px solid #BFE0CC;color:#1E5B39}
+.vres.ng{background:#FBEDED;border:1px solid #E8C4C4;color:#8E2B2B}
+.vres ul{margin:6px 0 0;padding-left:18px}
+
+/* ---- modal ---- */
+.mask{position:fixed;inset:0;background:rgba(18,26,38,.5);z-index:80;display:none}
+.mask.on{display:block}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:81;background:#fff;
+  border-radius:14px 14px 0 0;max-height:86vh;overflow:auto;display:none;
+  padding:0 0 calc(16px + env(safe-area-inset-bottom,0px));
+}
+.sheet.on{display:block}
+.sheet-h{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;z-index:2}
+.sheet-h h3{font-size:14.5px}
+.sheet-b{padding:14px 16px}
+.x{background:none;border:0;font-size:20px;color:var(--ink3);line-height:1;padding:0 4px}
+
+/* ---- misc ---- */
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--ink2)}
+.kv .v{font-weight:700;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line2);background:#fff;border-radius:14px;padding:4px 11px;font-size:11.5px;color:var(--ink2)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+.empty{text-align:center;color:var(--ink3);font-size:12.5px;padding:26px 10px}
+.tbl{font-size:12.5px}
+.tbl th{background:#F2F4F7;color:var(--ink2);font-size:11px;font-weight:700;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td.n{text-align:right;font-variant-numeric:tabular-nums}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:78px;z-index:90;
+  background:rgba(28,31,35,.94);color:#fff;padding:9px 16px;border-radius:20px;
+  font-size:12.5px;opacity:0;pointer-events:none;transition:opacity .18s;max-width:88vw;text-align:center;
+}
+.toast.on{opacity:1}
+.hide{display:none !important}
+
+/* ========== 直線コース ========== */
+.course{background:linear-gradient(180deg,#33603C,#2A5233);border-radius:10px;padding:9px 9px 7px}
+.chead{display:flex;justify-content:space-between;color:rgba(255,255,255,.72);font-size:9.5px;letter-spacing:.1em;margin-bottom:5px;padding:0 1px}
+.clane{display:flex;align-items:center;gap:5px;margin-bottom:4px;cursor:pointer}
+.clane:last-child{margin-bottom:0}
+.cnum{width:17px;height:17px;border-radius:3px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.35);flex:none}
+.cnm{width:54px;font-size:10.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+.ctrack{
+  position:relative;flex:1;height:23px;border-radius:4px;overflow:hidden;
+  background:repeating-linear-gradient(90deg,#4E8055 0 13px,#46764C 13px 26px);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.2);
+}
+.ctrack::after{
+  content:'';position:absolute;right:5px;top:0;bottom:0;width:3px;opacity:.92;
+  background:repeating-linear-gradient(180deg,#fff 0 4px,#D42A2A 4px 8px);
+}
+.chorse{
+  position:absolute;top:50%;margin-top:-9px;font-size:17px;line-height:1;
+  transition:left 1.05s cubic-bezier(.24,.66,.28,1);
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.45));
+}
+.chorse i{display:inline-block;font-style:normal;animation:cgallop .42s ease-in-out infinite alternate}
+@keyframes cgallop{from{transform:scaleX(-1) translateY(1px)}to{transform:scaleX(-1) translateY(-1.5px)}}
+.cpos{width:30px;text-align:right;font-size:11px;font-weight:800;color:rgba(255,255,255,.85);flex:none}
+.cpos.p1{color:var(--gold)}
+.ccap{display:flex;justify-content:space-between;color:rgba(255,255,255,.8);font-size:10px;margin-top:7px;padding:0 1px}
+/* ========== 対戦表 ========== */
+.br-round{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.br-round>summary{
+  list-style:none;cursor:pointer;padding:9px 12px;background:#F2F4F7;
+  display:flex;align-items:center;justify-content:space-between;font-size:13px;
+}
+.br-round>summary::-webkit-details-marker{display:none}
+.br-round>summary b{font-size:13.5px;color:var(--navy)}
+.br-cnt{font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.br-note{font-size:11px;color:var(--ink3);padding:7px 12px 0;line-height:1.6}
+.br-m{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line)}
+.br-m:last-child{border-bottom:0}
+.br-no{width:20px;text-align:center;font-size:10.5px;color:var(--ink3);flex:none;font-variant-numeric:tabular-nums}
+.br-pair{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.br-slot{
+  display:block;width:100%;text-align:left;font-size:12.5px;font-weight:600;color:var(--ink);
+  background:#fff;border:1px solid var(--line2);border-radius:6px;padding:6px 9px;min-height:32px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit;
+}
+.br-slot em{font-style:normal;font-size:10px;color:var(--ink3);margin-left:5px}
+.br-slot.empty{color:var(--ink3);font-weight:400;border-style:dashed;background:#FAFBFC}
+.br-slot.win{background:#EDF6F0;border-color:#9CCDB0;color:#1E5B39;font-weight:800}
+.br-slot.win em{color:#4F8267}
+.br-slot.win b{margin-right:4px}
+.br-slot.lose{color:var(--ink3);background:#F7F8FA;text-decoration:line-through;text-decoration-color:var(--line2)}
+.br-slot.lose em{color:var(--line2)}
+
+/* 着順表 */
+.chaku{margin-top:10px}
+.crow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line)}
+.crow:last-child{border-bottom:0}
+.crow .cno{width:22px;text-align:center;font-size:12.5px;font-weight:800;color:var(--ink3)}
+.crow.c1 .cno{color:var(--gold)}
+.wk{width:18px;height:18px;border-radius:3px;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.3);flex:none}
+.crow .cnm{flex:1;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .cpt{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy)}
+.crow .cmv{font-size:10.5px;font-weight:700;margin-left:3px}
+.crow .cmv.u{color:var(--gold)} .crow .cmv.d{color:var(--ink3)}
+.prize{font-size:10.5px;background:#FBF1D8;color:#8A6A18;border:1px solid #E8D6A4;border-radius:8px;padding:0 5px;font-weight:700;flex:none}
+.race-note{font-size:11px;color:var(--ink3);margin-top:8px;line-height:1.6}
+
+/* ========== 予想マトリクス（エクセル版式） ========== */
+.pm-wrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px;-webkit-overflow-scrolling:touch}
+.pm{border-collapse:separate;border-spacing:0;font-size:12px;width:auto;min-width:100%}
+.pm th,.pm td{white-space:nowrap;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.pm thead th{
+  position:sticky;top:0;z-index:3;background:#EEF2F7;color:var(--navy);
+  font-size:10.5px;font-weight:700;padding:7px 4px;text-align:center;border-bottom:1px solid var(--line2);
+}
+.pm thead th.pm-p{max-width:96px;overflow:hidden;text-overflow:ellipsis;background:#E6ECF4}
+.pm-wk{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:2px;
+  font-size:9px;font-weight:800;margin-right:3px;border:1px solid rgba(0,0,0,.3);vertical-align:-2px}
+.pm thead tr.sub th{top:29px;z-index:3;font-size:9.5px;padding:3px 2px;background:#F3F6FA;color:var(--ink2);font-weight:700}
+.pm thead tr.sub th.pm-t{z-index:4;background:#F3F6FA}
+.pm thead th.pm-sub.yo{color:#2C5282}
+.pm thead th.pm-sub.ka{color:#8A6A18;background:#FAF6EC}
+.pm td.pm-n.yo{width:36px;min-width:36px}
+.pm td.pm-n.ka{width:42px;min-width:42px;background:#FCFAF4;border-right:1px solid var(--line2)}
+.pm td.pm-n.ka b{color:#8A6A18}
+.yo-k{color:#2C5282}
+.ka-k{color:#8A6A18}
+/* 配点グラデーションの凡例 */
+.heatleg{margin-top:10px}
+.hl-bar{height:11px;border-radius:6px;border:1px solid var(--line2)}
+.hl-ticks{display:flex;justify-content:space-between;margin-top:2px;font-size:9.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.hl-cap{text-align:center;font-size:10px;color:var(--ink3);margin-top:1px;letter-spacing:.04em}
+.pm th.pm-t{
+  position:sticky;left:0;z-index:2;background:#fff;text-align:left;font-weight:600;
+  padding:6px 8px;min-width:112px;max-width:112px;overflow:hidden;text-overflow:ellipsis;
+  border-right:1px solid var(--line2);
+}
+.pm th.pm-t .no{display:inline-block;min-width:17px;color:var(--ink3);font-size:10px;font-weight:400}
+.pm th.pm-t em{display:block;font-style:normal;font-size:9.5px;color:var(--ink3);padding-left:17px;margin-top:-2px}
+.pm thead th.corner{z-index:4;background:#EEF2F7}
+.pm td.pm-w{width:30px;min-width:30px;text-align:center;color:var(--navy2);font-weight:700;background:#F7F9FC}
+.pm td.pm-n{
+  width:54px;min-width:54px;text-align:center;padding:6px 3px;
+  font-variant-numeric:tabular-nums;color:var(--ink2);
+}
+.pm td.pm-n i{display:block;font-style:normal;font-size:11px;font-weight:800;color:var(--navy2);margin-top:1px}
+.pm td.pm-n b{color:var(--navy);font-size:13px}
+.pm td.pm-n .z{color:var(--line2)}
+.pm td.pm-n.hi{box-shadow:inset 0 0 0 2px rgba(200,162,74,.75)}
+.pm td.pm-g{
+  width:40px;min-width:40px;text-align:center;font-weight:800;font-size:11.5px;
+  font-variant-numeric:tabular-nums;background:#FAFBFC;
+}
+.pm tr.flat th.pm-t{color:var(--ink3)}
+.hotbox{
+  background:#FFF8EE;border:1px solid #F0DEC2;border-radius:8px;padding:9px 11px;margin-bottom:10px;
+  font-size:12px;line-height:1.7;color:#7A5320;
+}
+.hotitem{display:inline-block;background:#fff;border:1px solid #EBD9BC;border-radius:12px;padding:2px 9px;margin:3px 5px 0 0;font-weight:700;color:var(--ink)}
+.hotitem em{font-style:normal;font-weight:800;color:#B5763F;font-size:11px;margin-left:3px}
+.pm tr.won th.pm-t{background:#FCFAF2}
+.pm tr.out th.pm-t{color:var(--ink3)}
+.pm tr.out th.pm-t .no,.pm tr.out th.pm-t em{color:var(--line2)}
+.pm tr.out td{opacity:.5}
+.pm tfoot th.pm-t,.pm tfoot td{position:sticky;bottom:0;background:#F2F4F7;font-weight:700;z-index:2}
+.pm tfoot th.pm-t{z-index:3}
+.pm tfoot td.tot b{color:var(--navy);font-size:13px}
+.pm tfoot td.rnk{color:var(--ink2);font-size:11px}
+
+/* ================= 演出 ================= */
+/* オープニング */
+#intro{
+  position:fixed;inset:0;z-index:200;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 8%, #1B4F7E 0%, #123A5E 42%, #0C2439 70%, #7A4E28 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .55s ease;
+}
+#intro.out{opacity:0;pointer-events:none}
+#intro .sky{position:absolute;inset:0;background:
+  radial-gradient(2px 2px at 18% 22%, rgba(255,255,255,.5), transparent 60%),
+  radial-gradient(2px 2px at 72% 16%, rgba(255,255,255,.4), transparent 60%),
+  radial-gradient(1.5px 1.5px at 44% 34%, rgba(255,255,255,.35), transparent 60%);}
+#intro .ball{
+  position:absolute;width:30px;height:30px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, #fff 0%, #F2F3F5 55%, #D8DCE1 100%);
+  box-shadow:0 6px 22px rgba(0,0,0,.4);
+  animation:pbfly 1.5s cubic-bezier(.16,.72,.3,1) forwards;
+}
+#intro .ball::before,#intro .ball::after{
+  content:'';position:absolute;top:4px;bottom:4px;width:12px;
+  border:1.6px solid #C0392B;border-radius:50%;border-top-color:transparent;border-bottom-color:transparent;
+}
+#intro .ball::before{left:2px;border-right-color:transparent}
+#intro .ball::after{right:2px;border-left-color:transparent}
+@keyframes pbfly{
+  0%{transform:translate(-46vw,42vh) scale(.5) rotate(0deg);opacity:0}
+  14%{opacity:1}
+  100%{transform:translate(0,-84px) scale(1) rotate(430deg);opacity:1}
+}
+#intro .ttl{
+  position:relative;text-align:center;color:#fff;opacity:0;
+  animation:pbrise .9s ease .95s forwards;
+}
+#intro .ttl .jp{font-size:26px;font-weight:700;letter-spacing:.24em;text-indent:.24em}
+#intro .ttl .en{font-size:10.5px;letter-spacing:.42em;text-indent:.42em;opacity:.72;margin-top:9px}
+#intro .ttl .ln{height:1px;background:linear-gradient(90deg,transparent,#C8A24A,transparent);margin:13px auto 0;width:0;animation:pbline .85s ease 1.35s forwards}
+#intro .sub{
+  position:relative;margin-top:20px;color:rgba(255,255,255,.82);font-size:11.5px;letter-spacing:.16em;
+  opacity:0;animation:pbrise .8s ease 1.6s forwards;text-align:center;
+}
+#intro .skip{position:absolute;bottom:30px;color:rgba(255,255,255,.5);font-size:10.5px;letter-spacing:.1em;
+  opacity:0;animation:pbrise .6s ease 2s forwards}
+@keyframes pbrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pbline{to{width:132px}}
+
+/* 順位の入れ替わり */
+.rk{
+  transition:transform .55s cubic-bezier(.22,.68,.24,1), background-color .5s ease, box-shadow .3s ease;
+  border-radius:8px;background:#fff;position:relative;
+}
+.rk.flip{transition:none}
+.rk.mv{z-index:5;box-shadow:0 6px 18px rgba(18,58,94,.14)}
+.rk.up{background-color:#FBF3DE;z-index:6}
+.rk.dn{background-color:#F6F7F9}
+.rk-bar i{transition:width .7s cubic-bezier(.22,.68,.24,1)}
+.rk-mv{font-size:10.5px;font-weight:700;padding:0 3px}
+.rk-mv.u{color:var(--gold)}
+.rk-mv.d{color:var(--ink3)}
+
+/* 加点ポップ */
+.pop{
+  position:fixed;z-index:150;pointer-events:none;font-weight:800;font-size:15px;color:var(--gold);
+  text-shadow:0 2px 8px rgba(0,0,0,.28);animation:pbpop 1.25s ease forwards;white-space:nowrap;
+}
+@keyframes pbpop{
+  0%{opacity:0;transform:translateY(6px) scale(.85)}
+  18%{opacity:1;transform:translateY(-4px) scale(1.12)}
+  70%{opacity:1;transform:translateY(-26px) scale(1)}
+  100%{opacity:0;transform:translateY(-46px) scale(1)}
+}
+/* 校名フラッシュ */
+.flash{
+  position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:151;pointer-events:none;
+  background:rgba(18,58,94,.95);color:#fff;padding:12px 22px;border-radius:12px;text-align:center;
+  box-shadow:0 12px 34px rgba(0,0,0,.32);animation:pbflash 1.5s ease forwards;
+}
+.flash .t{font-size:17px;font-weight:800;letter-spacing:.06em}
+.flash .s{font-size:10.5px;opacity:.78;letter-spacing:.1em;margin-top:2px}
+@keyframes pbflash{
+  0%{opacity:0;transform:translateX(-50%) scale(.86)}
+  14%{opacity:1;transform:translateX(-50%) scale(1.04)}
+  76%{opacity:1;transform:translateX(-50%) scale(1)}
+  100%{opacity:0;transform:translateX(-50%) scale(1)}
+}
+/* 優勝バナー */
+#champ{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(10,22,36,.62)}
+#champ.on{display:flex}
+#champ .box{
+  background:linear-gradient(160deg,#153F65,#0E2C48);border:1px solid rgba(200,162,74,.5);
+  border-radius:16px;padding:26px 30px;text-align:center;color:#fff;max-width:86vw;
+  box-shadow:0 22px 60px rgba(0,0,0,.45);animation:pbrise .6s ease}
+#champ .cap{font-size:10.5px;letter-spacing:.4em;color:var(--gold);text-indent:.4em}
+#champ .who{font-size:27px;font-weight:800;margin:9px 0 2px;letter-spacing:.05em}
+#champ .pt{font-size:12.5px;opacity:.8}
+#champ .tm{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.16);font-size:12px;opacity:.86}
+#confetti{position:fixed;inset:0;z-index:159;pointer-events:none;display:none}
+#confetti.on{display:block}
+/* デモバー */
+.demobar{
+  position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom,0px));z-index:55;
+  background:rgba(18,58,94,.96);color:#fff;padding:9px 12px;display:none;gap:8px;align-items:center;
+}
+.demobar.on{display:flex}
+.demobar .lbl{font-size:10.5px;letter-spacing:.08em;opacity:.8;flex:none}
+.demobar button{flex:1;background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:7px;padding:9px 4px;font-size:11px;font-weight:700;white-space:nowrap;line-height:1.2}
+.demobar button.rst{flex:0 0 40px;font-size:14px}
+.demobar button:disabled{opacity:.4}
+</style>
+</head>
+<body>
+
+<div id="intro" class="hide" onclick="endIntro()">
+  <div class="sky"></div>
+  <div class="ball"></div>
+  <div class="ttl">
+    <div class="jp">甲子園 順位予想</div>
+    <div class="en">2026 SUMMER</div>
+    <div class="ln"></div>
+  </div>
+  <div class="sub" id="intro-sub"></div>
+  <div class="skip">タップでスキップ</div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div id="champ" onclick="closeChamp()">
+  <div class="box">
+    <div class="cap">1 着</div>
+    <div class="who" id="champ-who"></div>
+    <div class="pt" id="champ-pt"></div>
+    <div class="tm" id="champ-tm"></div>
+  </div>
+</div>
+
+<div class="hdr">
+  <div class="hdr-t"><span>甲子園 順位予想</span><span class="yr">2026 SUMMER</span><span class="hdr-badge" id="hdr-mode">閲覧</span></div>
+  <div class="hdr-s" id="hdr-sub">第108回全国高校野球選手権 ・ 8/5 開幕</div>
+</div>
+
+<div class="vbar hide" id="vbar">
+  <span id="vbar-txt">共有データを表示中</span>
+  <a href="#" id="vbar-mine" class="hide">自分のデータを開く</a>
+</div>
+
+<!-- ============ 順位 ============ -->
+<div class="wrap" id="pg-rank">
+  <div class="card">
+    <div class="card-t">レース経過 <span class="sub" id="rank-sub"></span></div>
+    <div class="chips" id="rank-chips"></div>
+    <div id="race-body"></div>
+    <div id="rank-list"></div>
+  </div>
+  <div class="card" id="card-progress">
+    <div class="card-t">大会の進行</div>
+    <div id="progress-body"></div>
+  </div>
+</div>
+
+<!-- ============ 対戦表 ============ -->
+<div class="wrap hide" id="pg-bracket">
+  <div class="card">
+    <div class="card-t">トーナメント表 <span class="sub" id="br-sub"></span></div>
+    <div id="br-body"></div>
+  </div>
+</div>
+
+<!-- ============ 出場校 ============ -->
+<div class="wrap hide" id="pg-teams">
+  <div class="card">
+    <div class="card-t">出場49校 <span class="sub">タップで「誰が何点入れているか」</span></div>
+    <div class="chips" id="team-chips"></div>
+    <div id="team-list"></div>
+  </div>
+</div>
+
+<!-- ============ 予想一覧 ============ -->
+<div class="wrap hide" id="pg-picks">
+  <div class="card">
+    <div class="card-t">馬柱（みんなの予想） <span class="sub">列＝着順 ／ 横スクロール</span></div>
+    <div id="picks-body"></div>
+  </div>
+</div>
+
+<!-- ============ 管理 ============ -->
+<div class="wrap hide" id="pg-admin">
+  <div class="card">
+    <div class="card-t">① 予想の取り込み <span class="sub">LINEのテキストをそのまま貼る</span></div>
+    <label class="lb">参加者の名前</label>
+    <input id="imp-name" placeholder="例：洋平" list="imp-names">
+    <datalist id="imp-names"></datalist>
+    <label class="lb">貼り付け欄</label>
+    <textarea id="imp-text" placeholder="01. 白樺学園（北海道）　：2
+02. 札幌日大（南北海道）　：11
+…（49行そのまま貼り付け）"></textarea>
+    <div id="imp-result"></div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn pri" onclick="importCheck()">チェック</button>
+      <button class="btn" id="imp-save" onclick="importSave()" disabled>登録する</button>
+      <button class="btn" onclick="document.getElementById('imp-text').value='';document.getElementById('imp-result').innerHTML='';document.getElementById('imp-save').disabled=true">クリア</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">② 提出状況 <span class="sub" id="sub-count"></span></div>
+    <div id="admin-players"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">③ 試合結果の入力 <span class="sub">勝ったら「勝」・負けたら「敗退」</span></div>
+    <div class="chips" id="res-chips"></div>
+    <div id="res-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">④ みんなに共有</div>
+    <p class="muted" style="margin:0 0 10px">下のリンクに最新の順位が入ります。LINEグループに貼ってください。<br>結果を更新したら、もう一度作り直して貼り直します。</p>
+    <label class="lb">公開URL <span style="font-weight:400;color:var(--ink3)">（みんなが開くページのURL。手元のファイルで集計する場合は必須）</span></label>
+    <input id="share-base" placeholder="https://……/pb.html" oninput="localStorage.setItem('pb_koshien_base',this.value.trim())">
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn pri" onclick="makeShare()">共有リンクを作る</button>
+      <button class="btn" onclick="copyRankText()">順位をテキストでコピー</button>
+    </div>
+    <div id="share-out" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">⑤ データの保存</div>
+    <p class="muted" style="margin:0 0 10px">この端末のブラウザに自動保存されています。念のためファイルにも書き出せます。</p>
+    <div class="btnrow">
+      <button class="btn" onclick="exportJson()">ファイルに書き出す</button>
+      <button class="btn" onclick="document.getElementById('imp-file').click()">ファイルから読み込む</button>
+      <input type="file" id="imp-file" accept=".json" class="hide" onchange="importJson(this)">
+      <button class="btn dan" onclick="resetAll()">全部消す</button>
+    </div>
+  </div>
+</div>
+
+<div class="demobar" id="demobar">
+  <span class="lbl">DEMO</span>
+  <button onclick="demoNext()" id="demo-next">▶ 1試合すすめる</button>
+  <button onclick="demoRush()" id="demo-rush">🏆 一気に決勝まで</button>
+  <button onclick="demoReset()" class="rst" title="最初から">↺</button>
+</div>
+
+<div class="nav" id="nav">
+  <button data-pg="rank" class="on" onclick="go('rank')"><span class="ic">🏇</span>レース</button>
+  <button data-pg="bracket" onclick="go('bracket')"><span class="ic">🗂</span>対戦表</button>
+  <button data-pg="teams" onclick="go('teams')"><span class="ic">🏫</span>出場校</button>
+  <button data-pg="picks" onclick="go('picks')"><span class="ic">📋</span>予想</button>
+  <button data-pg="admin" class="hide" onclick="go('admin')"><span class="ic">⚙️</span>管理</button>
+</div>
+
+<div class="mask" id="mask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-h"><h3 id="sheet-t"></h3><button class="x" onclick="closeSheet()">✕</button></div>
+  <div class="sheet-b" id="sheet-b"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const APP_VERSION = '2026-07-29';
+
+/* ============================================================
+   出場49校（2026夏・第108回）
+   ※元リストの誤記を修正：霞ケ浦（茨城）／立正大淞南=島根・鳥取城北=鳥取
+   ============================================================ */
+const TEAMS = [
+ ['白樺学園','北北海道'],['札幌日大','南北海道'],['青森山田','青森'],['横手','秋田'],
+ ['花巻東','岩手'],['鶴岡東','山形'],['仙台育英','宮城'],['東日大昌平','福島'],
+ ['日本文理','新潟'],['高岡商','富山'],['遊学館','石川'],['佐野日大','栃木'],
+ ['健大高崎','群馬'],['霞ケ浦','茨城'],['花咲徳栄','埼玉'],['拓大紅陵','千葉'],
+ ['関東第一','東東京'],['八王子実践','西東京'],['横浜','神奈川'],['松商学園','長野'],
+ ['東海大甲府','山梨'],['聖隷クリストファー','静岡'],['三重','三重'],['享栄','愛知'],
+ ['中京','岐阜'],['敦賀気比','福井'],['立命館宇治','京都'],['八幡商','滋賀'],
+ ['履正社','大阪'],['天理','奈良'],['智弁和歌山','和歌山'],['社','兵庫'],
+ ['立正大淞南','島根'],['鳥取城北','鳥取'],['岡山学芸館','岡山'],['福山','広島'],
+ ['高川学園','山口'],['英明','香川'],['鳴門渦潮','徳島'],['新田','愛媛'],
+ ['明徳義塾','高知'],['東筑','福岡'],['佐賀商','佐賀'],['大分商','大分'],
+ ['長崎日大','長崎'],['有明','熊本'],['日南学園','宮崎'],['神村学園','鹿児島'],
+ ['沖縄尚学','沖縄']
+].map((t,i)=>({no:i+1,name:t[0],pref:t[1]}));
+const N = TEAMS.length;                    // 49
+const SUM_ALL = N*(N+1)/2;                 // 1225
+
+/* 校名の表記ゆれ吸収（貼り付け取り込み用） */
+const ALIAS = {
+ '高岡商業':'高岡商','八幡商業':'八幡商','佐賀商業':'佐賀商','大分商業':'大分商',
+ '鹿ヶ浦':'霞ケ浦','霞ヶ浦':'霞ケ浦','関東一':'関東第一','東日本大昌平':'東日大昌平',
+ '聖隷':'聖隷クリストファー','智辯和歌山':'智弁和歌山','中京高':'中京','社高':'社'
+};
+
+/* ============================================================
+   状態
+   ============================================================ */
+const LS_KEY = 'pb_koshien_2026s';
+const LS_ADMIN = 'pb_koshien_admin';
+let ST = null;          // {players:[{name,picks:[49]}], wins:[49], out:[49 bool], ts}
+let IS_ADMIN = false;
+let VIEWING_SHARE = false;
+let IS_DEMO = false;
+let _pendingImport = null;
+let _teamFilter = 'all';
+let _resFilter = 'alive';
+
+function blankState(){
+  return { v:2, players:[], wins:new Array(N).fill(0), out:new Array(N).fill(false), matches:null, ts:Date.now() };
+}
+function save(){
+  if(VIEWING_SHARE || IS_DEMO) return;
+  ST.ts = Date.now();
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(ST)); }
+  catch(e){ toast('保存できませんでした'); }
+}
+function load(){
+  try{ const s = localStorage.getItem(LS_KEY); if(s) return JSON.parse(s); }catch(e){}
+  return null;
+}
+
+/* ============================================================
+   共有リンクのエンコード（自前・短い）
+   [ver][playerCount] (players: [nameLen][utf8][49 picks]) [49 wins] [7 out bits] [4 ts(min)]
+   ============================================================ */
+function b64urlEnc(bytes){
+  let s='';for(const b of bytes) s+=String.fromCharCode(b);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function b64urlDec(str){
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  while(str.length%4) str+='=';
+  const s = atob(str); const a = new Uint8Array(s.length);
+  for(let i=0;i<s.length;i++) a[i]=s.charCodeAt(i);
+  return a;
+}
+function encodeState(st){
+  const te = new TextEncoder(); const out=[];
+  out.push(2, st.players.length);
+  for(const p of st.players){
+    const nb = te.encode(p.name);
+    out.push(nb.length); for(const b of nb) out.push(b);
+    for(let i=0;i<N;i++) out.push(p.picks[i]||0);
+  }
+  for(let i=0;i<N;i++) out.push(Math.min(255, st.wins[i]||0));
+  for(let i=0;i<7;i++){
+    let b=0; for(let k=0;k<8;k++){ const idx=i*8+k; if(idx<N && st.out[idx]) b|=(1<<k); }
+    out.push(b);
+  }
+  const m = Math.floor((st.ts||Date.now())/60000);
+  out.push((m>>>24)&255,(m>>>16)&255,(m>>>8)&255,m&255);
+  // v2：対戦表（1試合＝a,b,w の3バイト。0=未定、1〜49=校番号）
+  const ms = (st.matches && st.matches.length===TOTAL_GAMES) ? st.matches : null;
+  if(!ms) out.push(0);
+  else { out.push(1); ms.forEach(x=>out.push((x.a==null?0:x.a+1),(x.b==null?0:x.b+1),(x.w==null?0:x.w+1))); }
+  return b64urlEnc(Uint8Array.from(out));
+}
+function decodeState(str){
+  const a = b64urlDec(str); const td = new TextDecoder(); let i=0;
+  const v=a[i++]; if(v!==1 && v!==2) throw new Error('bad version');
+  const pc=a[i++]; const players=[];
+  for(let p=0;p<pc;p++){
+    const nl=a[i++]; const name=td.decode(a.slice(i,i+nl)); i+=nl;
+    const picks=[]; for(let k=0;k<N;k++) picks.push(a[i++]);
+    players.push({name,picks});
+  }
+  const wins=[]; for(let k=0;k<N;k++) wins.push(a[i++]);
+  const out=new Array(N).fill(false);
+  for(let b=0;b<7;b++){ const byte=a[i++]; for(let k=0;k<8;k++){ const idx=b*8+k; if(idx<N && (byte&(1<<k))) out[idx]=true; } }
+  const ts = ((a[i]<<24)|(a[i+1]<<16)|(a[i+2]<<8)|a[i+3])>>>0; i+=4;
+  let matches = null;
+  if(v===2 && a[i++]===1){
+    matches = initMatches();
+    for(let k=0;k<TOTAL_GAMES;k++){
+      const A=a[i++], B=a[i++], W=a[i++];
+      matches[k].a = A? A-1 : null;
+      matches[k].b = B? B-1 : null;
+      matches[k].w = W? W-1 : null;
+    }
+  }
+  return { v:2, players, wins, out, matches, ts: ts*60000 };
+}
+
+/* ============================================================
+   集計
+   ============================================================ */
+function scoreOf(p){ let s=0; for(let i=0;i<N;i++) s += (p.picks[i]||0)*(ST.wins[i]||0); return s; }
+function ranking(){
+  const rows = ST.players.map(p=>({name:p.name, picks:p.picks, pt:scoreOf(p)}));
+  rows.sort((a,b)=> b.pt-a.pt || a.name.localeCompare(b.name,'ja'));
+  let rank=0, prev=null;
+  rows.forEach((r,i)=>{ if(r.pt!==prev){ rank=i+1; prev=r.pt; } r.rank=rank; });
+  return rows;
+}
+function totalGames(){ let g=0; for(let i=0;i<N;i++) g+=ST.wins[i]||0; return g; }
+function aliveCount(){ let c=0; for(let i=0;i<N;i++) if(!ST.out[i]) c++; return c; }
+
+/* ============================================================
+   画面
+   ============================================================ */
+function go(pg){
+  ['rank','bracket','teams','picks','admin'].forEach(k=>{
+    const el = document.getElementById('pg-'+k); if(el) el.classList.toggle('hide', k!==pg);
+  });
+  document.querySelectorAll('.nav button').forEach(b=> b.classList.toggle('on', b.dataset.pg===pg));
+  window.scrollTo(0,0);
+  render();
+}
+function render(anim){
+  renderRank(anim); renderProgress(); renderTeams(); renderPicks(); renderBracket();
+  if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); }
+}
+
+/* ---- 飛び賞 ---- */
+const PRIZE_RANKS = [8,10];                       // ★ここを変えれば飛び賞の順位を変えられる
+const isPrize = r => PRIZE_RANKS.includes(r);
+
+/* ---- 競馬トラック ---- */
+let _rankView = 'race';                            // race | list
+let _raceKey = '';                                 // 出走メンバーが変わったら組み直す
+const TOTAL_GAMES = 48;                            // 49校＝全48試合＝トラック1周
+
+/* 枠色（JRA準拠） */
+const WAKU = [
+  {bg:'#FFFFFF',fg:'#111'},{bg:'#1C1C1C',fg:'#fff'},{bg:'#D42A2A',fg:'#fff'},{bg:'#2D5FBF',fg:'#fff'},
+  {bg:'#F2CE22',fg:'#111'},{bg:'#2E9E52',fg:'#fff'},{bg:'#E8802A',fg:'#111'},{bg:'#F2A3C0',fg:'#111'}
+];
+function wakuMap(n){                                // 馬番 → 枠番
+  const frames = Math.min(8, n);
+  const counts = new Array(frames).fill(Math.floor(n/frames));
+  let rem = n % frames;
+  for(let i=frames-1; rem>0; i--, rem--) counts[i]++;
+  const map=[]; let u=1;
+  counts.forEach((c,fi)=>{ for(let k=0;k<c;k++) map[u++]=fi+1; });
+  return map;
+}
+function umabanOf(){                                // 馬番＝登録順で固定
+  const m={}; ST.players.forEach((p,i)=>m[p.name]=i+1); return m;
+}
+function wakuColor(name){
+  const um = umabanOf(), map = wakuMap(ST.players.length);
+  return WAKU[(map[um[name]]||1)-1];
+}
+function setRankView(v){ _rankView=v; renderRank(); }
+
+/* 進行度 t（0〜1）＝ 大会消化率 × 首位との比^3 。先頭は消化率の位置＝全部終わるとゴール */
+function laneT(r, lead, progress){
+  if(lead<=0) return 0;
+  return progress * Math.pow(r.pt/lead, 3);
+}
+function renderRace(rows, anim){
+  const host = document.getElementById('race-body');
+  if(_rankView!=='race'){ host.innerHTML=''; _raceKey=''; return; }
+  const um = umabanOf(), map = wakuMap(rows.length);
+  const byUma = rows.slice().sort((a,b)=> um[a.name]-um[b.name]);   // レーンは馬番順で固定
+  const key = byUma.map(r=>r.name).join('|');
+
+  if(_raceKey!==key){                                  // 出走表を組む（1回だけ）
+    _raceKey = key;
+    host.innerHTML = `
+      <div class="course">
+        <div class="chead"><span>スタート</span><span>ゴール ▶</span></div>
+        ${byUma.map(r=>{
+          const wk = WAKU[(map[um[r.name]]||1)-1];
+          return `<div class="clane" data-nm="${esc(r.name)}" onclick="openPlayerByName('${esc(r.name)}')">
+            <span class="cnum" style="background:${wk.bg};color:${wk.fg}">${um[r.name]}</span>
+            <span class="cnm">${esc(r.name)}</span>
+            <span class="ctrack"><span class="chorse" style="left:0%"><i>🐎</i></span></span>
+            <span class="cpos"></span>
+          </div>`;
+        }).join('')}
+        <div class="ccap"><span id="course-lap"></span><span id="course-lead"></span></div>
+      </div>
+      <div class="chaku" id="chaku"></div>
+      <div class="race-note">コース＝全${TOTAL_GAMES}試合。先頭がゴール板に届いたら決着です。<br>
+        位置はざっくりの着順（正確なポイントは下の着順表と「予想」タブで）。飛び賞は ${PRIZE_RANKS.join('位 と ')}位。</div>`;
+  }
+
+  const progress = Math.min(1, totalGames()/TOTAL_GAMES);
+  const lead = rows[0].pt;
+  const set = ()=>{
+    rows.forEach(r=>{
+      const el = host.querySelector(`.clane[data-nm="${cssq(r.name)}"]`);
+      if(!el) return;
+      const x = 2 + laneT(r, lead, progress) * 88;                  // 2%〜90%（ゴール板の手前）
+      el.querySelector('.chorse').style.left = x+'%';
+      const pos = el.querySelector('.cpos');
+      pos.textContent = r.rank + '着';
+      pos.classList.toggle('p1', r.rank===1);
+    });
+  };
+  if(anim){ let d=false; const go=()=>{ if(d)return; d=true; set(); };
+            requestAnimationFrame(()=>requestAnimationFrame(go)); setTimeout(go,70); }
+  else set();
+
+  const left = TOTAL_GAMES - totalGames();
+  document.getElementById('course-lap').textContent =
+    left>0 ? `残り ${left} 試合（${Math.round(progress*100)}% 消化）` : '全レース終了';
+  document.getElementById('course-lead').textContent =
+    rows.length ? `先頭 ${rows[0].name} ${rows[0].pt.toLocaleString()}P` : '';
+  renderChaku(rows);
+}
+function renderChaku(rows){
+  const host = document.getElementById('chaku'); if(!host) return;
+  const um = umabanOf(), map = wakuMap(rows.length);
+  host.innerHTML = rows.map(r=>{
+    const wk = WAKU[(map[um[r.name]]||1)-1];
+    const pv = _prevRank[r.name];
+    const mv = (pv!=null && pv!==r.rank)
+      ? (pv>r.rank?`<span class="cmv u">▲${pv-r.rank}</span>`:`<span class="cmv d">▼${r.rank-pv}</span>`) : '';
+    return `<div class="crow ${r.rank===1?'c1':''}" onclick="openPlayerByName('${esc(r.name)}')">
+      <span class="cno">${r.rank}</span>
+      <span class="wk" style="background:${wk.bg};color:${wk.fg}">${um[r.name]}</span>
+      <span class="cnm">${esc(r.name)}${mv}</span>
+      ${isPrize(r.rank)?'<span class="prize">飛び賞</span>':''}
+      <span class="cpt">${r.pt.toLocaleString()}</span>
+      <span class="chev">›</span>
+    </div>`;
+  }).join('');
+}
+function cssq(s){ return String(s).replace(/["\\]/g,'\\$&'); }
+function openPlayerByName(nm){
+  const i = ranking().findIndex(r=>r.name===nm);
+  if(i>=0) openPlayer(i);
+}
+
+/* ---- 順位（入れ替わりアニメ付き） ---- */
+let _prevPt = {}, _prevRank = {};
+function renderRank(anim){
+  const host = document.getElementById('rank-list');
+  const rows = ranking();
+  document.getElementById('rank-sub').textContent =
+    ST.players.length ? `${ST.players.length}人 ・ ${totalGames()}試合終了` : '';
+  document.getElementById('rank-chips').innerHTML = ST.players.length ? [['race','🏇 レース'],['list','📊 着順表（詳細）']]
+    .map(([k,l])=>`<button class="chip ${_rankView===k?'on':''}" onclick="setRankView('${k}')">${l}</button>`).join('') : '';
+  if(!rows.length){
+    document.getElementById('race-body').innerHTML = '';
+    host.innerHTML = `<div class="empty">まだ予想が登録されていません<br>
+      <button class="btn" style="margin-top:12px" onclick="startDemo()">▶ デモを見る</button></div>`;
+    return;
+  }
+  renderRace(rows, anim);
+  if(_rankView==='race'){ host.innerHTML=''; rows.forEach(r=>{ _prevPt[r.name]=r.pt; _prevRank[r.name]=r.rank; }); return; }
+  // アニメ前の位置を記録
+  const before = {};
+  if(anim) host.querySelectorAll('.rk').forEach(el=>{ before[el.dataset.nm] = el.getBoundingClientRect().top; });
+
+  const max = Math.max(1, rows[0].pt);
+  host.innerHTML = rows.map((r,i)=>{
+    const pv = _prevRank[r.name];
+    const mv = (pv!=null && pv!==r.rank) ? (pv>r.rank
+      ? `<span class="rk-mv u">▲${pv-r.rank}</span>` : `<span class="rk-mv d">▼${r.rank-pv}</span>`) : '';
+    const start = anim ? (_prevPt[r.name]||0) : r.pt;
+    return `
+    <div class="rk ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''}"
+         data-nm="${esc(r.name)}" data-pt="${r.pt}" onclick="openPlayer(${i})">
+      <div class="rk-no">${r.rank}</div>
+      <div class="rk-b">
+        <div class="rk-nm">${esc(r.name)}${mv}${isPrize(r.rank)?'<span class="prize">飛び賞</span>':''}</div>
+        <div class="rk-bar"><i style="width:${anim?Math.round((_prevPt[r.name]||0)/max*100):Math.round(r.pt/max*100)}%"></i></div>
+      </div>
+      <div class="rk-p"><b>${start.toLocaleString()}</b><span>P</span></div>
+      <div class="chev">›</div>
+    </div>`;
+  }).join('');
+
+  const els = [...host.querySelectorAll('.rk')];
+  if(anim){
+    // FLIP：元の位置へ戻してから、本来の位置へ滑らせる
+    els.forEach(el=>{
+      const nm = el.dataset.nm;
+      const pv = _prevRank[nm], nv = rows.find(r=>r.name===nm).rank;
+      if(before[nm]!=null){
+        const d = before[nm] - el.getBoundingClientRect().top;
+        if(Math.abs(d) > 1){
+          el.classList.add('flip','mv');
+          el.style.transform = `translateY(${d}px)`;
+          if(pv!=null && pv!==nv) el.classList.add(pv>nv?'up':'dn');
+        }
+      }
+    });
+    // 🚨 rAF だけに頼らない（背面タブ・非表示中は rAF が止まり、ずれたまま固まるため）
+    let settled = false;
+    const settle = ()=>{
+      if(settled) return; settled = true;
+      els.forEach(el=>{ el.classList.remove('flip'); el.style.transform=''; });
+      els.forEach(el=>{
+        const to = +el.dataset.pt, from = _prevPt[el.dataset.nm]||0;
+        el.querySelector('.rk-bar i').style.width = Math.round(to/max*100)+'%';
+        countUp(el.querySelector('.rk-p b'), from, to, 780);
+      });
+      setTimeout(()=>els.forEach(el=>el.classList.remove('mv')), 620);
+      setTimeout(()=>els.forEach(el=>el.classList.remove('up','dn')), 1500);
+    };
+    requestAnimationFrame(()=>requestAnimationFrame(settle));
+    setTimeout(settle, 70);          // 保険：rAFが来なくても必ず元に戻す
+  }
+  rows.forEach(r=>{ _prevPt[r.name]=r.pt; _prevRank[r.name]=r.rank; });
+}
+function countUp(el, from, to, ms){
+  if(!el) return;
+  if(from===to || document.hidden){ el.textContent = to.toLocaleString(); return; }
+  const t0 = performance.now();
+  (function step(t){
+    const k = Math.min(1,(t-t0)/ms);
+    const e = 1-Math.pow(1-k,3);
+    el.textContent = Math.round(from+(to-from)*e).toLocaleString();
+    if(k<1) requestAnimationFrame(step);
+  })(t0);
+  setTimeout(()=>{ el.textContent = to.toLocaleString(); }, ms+120);   // 保険
+}
+function renderProgress(){
+  const host = document.getElementById('progress-body');
+  const g = totalGames(), alive = aliveCount();
+  const top = TEAMS.map((t,i)=>({t,w:ST.wins[i]||0,o:ST.out[i]}))
+                   .filter(x=>x.w>0).sort((a,b)=>b.w-a.w).slice(0,6);
+  host.innerHTML = `
+    <div class="kv"><span class="k">終了した試合</span><span class="v">${g} / 48</span></div>
+    <div class="kv"><span class="k">勝ち残っている校</span><span class="v">${alive} 校</span></div>
+    ${top.length?`<div style="margin-top:10px"><div class="muted" style="margin-bottom:4px">勝ち上がり</div>`+
+      top.map(x=>`<div class="kv"><span class="k">${esc(x.t.name)}${x.o?' <span style="color:var(--red);font-size:10.5px">敗退</span>':''}</span><span class="v">${x.w}勝</span></div>`).join('')+
+      `</div>`:'<div class="muted" style="margin-top:8px">まだ試合が始まっていません。開幕は 8/5、組み合わせ抽選は 8/1 17時です。</div>'}`;
+}
+
+/* ---- 出場校 ---- */
+function renderTeams(){
+  const chips = document.getElementById('team-chips');
+  chips.innerHTML = [['all','すべて'],['alive','勝ち残り'],['won','勝利あり'],['out','敗退']]
+    .map(([k,l])=>`<button class="chip ${_teamFilter===k?'on':''}" onclick="_teamFilter='${k}';renderTeams()">${l}</button>`).join('');
+  let list = TEAMS.map((t,i)=>({t,i,w:ST.wins[i]||0,o:ST.out[i]}));
+  if(_teamFilter==='alive') list = list.filter(x=>!x.o);
+  if(_teamFilter==='won')   list = list.filter(x=>x.w>0);
+  if(_teamFilter==='out')   list = list.filter(x=>x.o);
+  document.getElementById('team-list').innerHTML = list.length? list.map(x=>`
+    <div class="tm ${x.o?'out':''}" onclick="openTeam(${x.i})">
+      <div class="tm-no">${x.t.no}</div>
+      <div class="tm-b"><div class="tm-nm">${esc(x.t.name)}</div><div class="tm-pf">${esc(x.t.pref)}</div></div>
+      <div class="wpill ${x.o?'out':(x.w?'':'z')}">${x.o?'敗退 '+x.w+'勝':x.w+'勝'}</div>
+      <div class="chev">›</div>
+    </div>`).join('') : '<div class="empty">該当なし</div>';
+}
+
+/* ---- 予想一覧（エクセルと同じマトリクス） ---- */
+let _pickMode = 'both';     // pred=予想点 / pt=獲得P / both
+let _pickOnlyAlive = false;
+let _pickSort = 'no';       // no=番号順 / gap=差が大きい順
+function setPickMode(m){ _pickMode=m; renderPicks(); }
+function setPickSort(s){ _pickSort=s; renderPicks(); }
+function togglePickAlive(){ _pickOnlyAlive=!_pickOnlyAlive; renderPicks(); }
+
+/* 配点の色（エクセルの 1〜9緑 / 10〜19青 / 20〜29黄 / 30〜赤 を連続グラデーションに） */
+const HEAT_STOPS = [
+  [0.00,[214,231,248]],   // 淡い青（低い配点）
+  [0.24,[219,238,236]],   // 青緑
+  [0.44,[226,240,214]],   // 淡い緑
+  [0.64,[250,243,203]],   // 淡い黄
+  [0.83,[250,219,184]],   // 淡い橙
+  [1.00,[243,173,168]]    // 淡い赤（高い配点）
+];
+function heatColor(v){
+  const t = Math.max(0, Math.min(1, (v-1)/(N-1)));
+  for(let i=1;i<HEAT_STOPS.length;i++){
+    if(t<=HEAT_STOPS[i][0]){
+      const [t0,c0]=HEAT_STOPS[i-1], [t1,c1]=HEAT_STOPS[i];
+      const k=(t1===t0)?0:(t-t0)/(t1-t0);
+      const c=c0.map((x,j)=>Math.round(x+(c1[j]-x)*k));
+      return `rgb(${c[0]},${c[1]},${c[2]})`;
+    }
+  }
+  const c=HEAT_STOPS[HEAT_STOPS.length-1][1];
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function heatStyle(v){
+  if(!v) return '';
+  const t = (v-1)/(N-1);
+  return `background:${heatColor(v)};color:#2A2E34;${t>0.62?'font-weight:800;':''}`;
+}
+function heatLegend(){
+  const stops = HEAT_STOPS.map(([t,c])=>`rgb(${c[0]},${c[1]},${c[2]}) ${Math.round(t*100)}%`).join(',');
+  const ticks = [1,10,20,30,40,N];
+  return `<div class="heatleg">
+    <div class="hl-bar" style="background:linear-gradient(90deg,${stops})"></div>
+    <div class="hl-ticks">${ticks.map(v=>`<span>${v}</span>`).join('')}</div>
+    <div class="hl-cap">低い配点 ← → 高い配点</div>
+  </div>`;
+}
+/* 差の大きさを色で（配点のグラデーションと混ざらないよう紫系にする） */
+function gapStyle(g){
+  if(g<=0) return 'color:var(--line2)';
+  const t = Math.min(1, g/40);
+  return `background:hsl(282,${30+t*34}%,${97-t*14}%);color:${t>0.55?'#5B2E7A':'#7A5A93'};`;
+}
+function renderPicks(){
+  const host = document.getElementById('picks-body');
+  if(!ST.players.length){ host.innerHTML='<div class="empty">まだ予想が登録されていません</div>'; return; }
+  const rows = ranking();                                   // 列は現在の順位順
+  const modes = [['pred','予想'],['pt','獲得P'],['both','両方']];
+  const head = `
+    <div class="chips">
+      ${modes.map(([k,l])=>`<button class="chip ${_pickMode===k?'on':''}" onclick="setPickMode('${k}')">${l}</button>`).join('')}
+      <button class="chip ${_pickOnlyAlive?'on':''}" onclick="togglePickAlive()">勝ち残りだけ</button>
+      <button class="chip ${_pickSort==='gap'?'on':''}" onclick="setPickSort('${_pickSort==='gap'?'no':'gap'}')">🔥 差が大きい順</button>
+    </div>`;
+
+  let list = TEAMS.map((t,i)=>{
+    const vals = rows.map(r=>r.picks[i]||0);
+    const mx = Math.max(...vals), mn = Math.min(...vals);
+    return {t, i, gap: (vals.length? mx-mn : 0), best: mx};
+  });
+  if(_pickOnlyAlive) list = list.filter(x=>!ST.out[x.i]);
+  if(_pickSort==='gap') list = list.slice().sort((a,b)=> b.gap-a.gap || a.i-b.i);
+
+  const um = umabanOf(), wmap = wakuMap(rows.length);
+  const span = _pickMode==='both' ? 2 : 1;
+  const th1 = rows.map(r=>{
+    const wk = WAKU[(wmap[um[r.name]]||1)-1];
+    return `<th class="pm-p" colspan="${span}" title="${esc(r.name)}">
+      <span class="pm-wk" style="background:${wk.bg};color:${wk.fg}">${um[r.name]}</span>${esc(r.name)}</th>`;
+  }).join('');
+  const th2 = _pickMode==='both'
+    ? `<tr class="sub"><th class="pm-t"></th><th class="pm-w"></th><th class="pm-g"></th>` +
+      rows.map(()=>`<th class="pm-sub yo">予想</th><th class="pm-sub ka">獲得</th>`).join('') + `</tr>`
+    : '';
+  const body = list.map(x=>{
+    const w = ST.wins[x.i]||0;
+    const tds = rows.map(r=>{
+      const v = r.picks[x.i]||0, pt = v*w;
+      const hi = (v===x.best && x.best>0) ? ' hi' : '';
+      if(_pickMode==='pred') return `<td class="pm-n${hi}" style="${heatStyle(v)}">${v}</td>`;
+      if(_pickMode==='pt')   return `<td class="pm-n ka">${pt?`<b>${pt}</b>`:'<span class="z">0</span>'}</td>`;
+      return `<td class="pm-n yo${hi}" style="${heatStyle(v)}">${v}</td>`
+           + `<td class="pm-n ka">${pt?`<b>${pt}</b>`:'<span class="z">0</span>'}</td>`;
+    }).join('');
+    return `<tr class="${ST.out[x.i]?'out':''}${w?' won':''}${x.gap<=6?' flat':''}">
+      <th class="pm-t"><span class="no">${x.t.no}</span>${esc(x.t.name)}<em>${esc(x.t.pref)}</em></th>
+      <td class="pm-w">${w?w:'<span class="z">0</span>'}</td>
+      <td class="pm-g" style="${gapStyle(x.gap)}" title="いちばん高い人といちばん低い人の差">${x.gap}</td>${tds}</tr>`;
+  }).join('');
+
+  const totals = rows.map(r=>`<td class="pm-n tot" colspan="${span}"><b>${r.pt.toLocaleString()}</b></td>`).join('');
+  const ranks  = rows.map(r=>`<td class="pm-n rnk" colspan="${span}">${r.rank}着${isPrize(r.rank)?'🎁':''}</td>`).join('');
+
+  // 差がつく校 上位3つ（勝ち残りのみ）
+  const hot = list.filter(x=>!ST.out[x.i]).slice().sort((a,b)=>b.gap-a.gap).slice(0,3);
+
+  host.innerHTML = head + `
+    ${hot.length?`<div class="hotbox">🔥 <b>ここが勝つと順位が動く</b>（勝ち残りの中で差が大きい校）<br>
+      ${hot.map(x=>`<span class="hotitem">${esc(x.t.name)} <em>差${x.gap}</em></span>`).join('')}</div>`:''}
+    <div class="pm-wrap">
+      <table class="pm">
+        <thead><tr><th class="pm-t corner">校名</th><th class="pm-w">勝</th><th class="pm-g">差</th>${th1}</tr>${th2}</thead>
+        <tbody>${body}</tbody>
+        <tfoot>
+          <tr><th class="pm-t">獲得P合計</th><td class="pm-w"></td><td class="pm-g"></td>${totals}</tr>
+          <tr><th class="pm-t">着順</th><td class="pm-w"></td><td class="pm-g"></td>${ranks}</tr>
+        </tfoot>
+      </table>
+    </div>
+    ${heatLegend()}
+    <div class="muted" style="margin-top:8px">
+      <b class="yo-k">予想</b>＝その校に振った点／<b class="ka-k">獲得</b>＝予想×勝利数。金枠＝いちばん高く買っている人。<br>
+      <b>「差」</b>＝いちばん高い人と低い人の開き。<b>差が小さい校は、勝っても全員に同じだけ入るので着順は動きません。</b>
+    </div>`;
+
+  // 2段ヘッダーの下段を、上段の実高さに合わせて貼り付ける
+  const h1 = host.querySelector('.pm thead tr:first-child th');
+  if(h1) host.querySelectorAll('.pm thead tr.sub th')
+             .forEach(th=> th.style.top = Math.round(h1.getBoundingClientRect().height)+'px');
+}
+
+/* ============================================================
+   トーナメント表
+   ============================================================ */
+const ROUNDS = [
+  {k:'r1', l:'1回戦',   n:17, note:'49校のうち34校が登場（15校はシードで2回戦から）'},
+  {k:'r2', l:'2回戦',   n:16, note:''},
+  {k:'r3', l:'3回戦',   n:8,  note:'ここまでが抽選で決まった組み合わせ'},
+  {k:'qf', l:'準々決勝', n:4,  note:'ここから先は勝った学校が試合後にくじを引いて決めます'},
+  {k:'sf', l:'準決勝',  n:2,  note:''},
+  {k:'f',  l:'決勝',    n:1,  note:''}
+];
+function initMatches(){
+  const a=[]; ROUNDS.forEach((rd,ri)=>{ for(let i=0;i<rd.n;i++) a.push({r:ri,a:null,b:null,w:null}); });
+  return a;
+}
+function ensureMatches(){ if(!ST.matches || ST.matches.length!==TOTAL_GAMES) ST.matches = initMatches(); }
+function roundOf(mi){ return ST.matches[mi].r; }
+function matchNoIn(mi){
+  let c=0; for(let i=0;i<mi;i++) if(ST.matches[i].r===ST.matches[mi].r) c++;
+  return c+1;
+}
+/* 勝者を決める（もう一度押すと取り消し） */
+function pickWinner(mi, side){
+  ensureMatches();
+  const m = ST.matches[mi];
+  const w = side==='a' ? m.a : m.b;
+  const l = side==='a' ? m.b : m.a;
+  if(w==null || l==null){ toast('先に2校を選んでください'); return; }
+  if(m.w===w){                                   // 取り消し
+    ST.wins[w] = Math.max(0,(ST.wins[w]||0)-1);
+    ST.out[l] = false; m.w = null;
+    save(); render(true); toast('勝者を取り消しました'); return;
+  }
+  if(m.w!=null){                                 // 別の学校に付け替え
+    const prevL = (m.w===m.a) ? m.b : m.a;
+    ST.wins[m.w] = Math.max(0,(ST.wins[m.w]||0)-1);
+    if(prevL!=null) ST.out[prevL] = false;
+  }
+  m.w = w;
+  ST.wins[w] = (ST.wins[w]||0)+1;
+  ST.out[l] = true;
+  save(); render(true); celebrateWin(w); checkChamp();
+}
+function renderBracket(){
+  const host = document.getElementById('br-body'); if(!host) return;
+  ensureMatches();
+  const done = ST.matches.filter(m=>m.w!=null).length;
+  const set  = ST.matches.filter(m=>m.a!=null&&m.b!=null).length;
+  document.getElementById('br-sub').textContent = `${done} / ${TOTAL_GAMES} 試合 終了`;
+  const cell = (mi, side)=>{
+    const m = ST.matches[mi], idx = side==='a'?m.a:m.b;
+    const isW = m.w!=null && m.w===idx;
+    const isL = m.w!=null && idx!=null && m.w!==idx;
+    if(idx==null){
+      return IS_ADMIN && !VIEWING_SHARE
+        ? `<button class="br-slot empty" onclick="openMatchPick(${mi},'${side}')">＋ 学校を選ぶ</button>`
+        : `<span class="br-slot empty">未定</span>`;
+    }
+    const nm = `${TEAMS[idx].name}<em>${TEAMS[idx].pref}</em>`;
+    return (IS_ADMIN && !VIEWING_SHARE)
+      ? `<button class="br-slot ${isW?'win':''}${isL?' lose':''}" onclick="pickWinner(${mi},'${side}')"
+           oncontextmenu="event.preventDefault();openMatchPick(${mi},'${side}')">${isW?'<b>🏇</b>':''}${nm}</button>`
+      : `<span class="br-slot ${isW?'win':''}${isL?' lose':''}">${isW?'<b>🏇</b>':''}${nm}</span>`;
+  };
+  host.innerHTML = ROUNDS.map((rd,ri)=>{
+    const idxs = ST.matches.map((m,i)=>({m,i})).filter(x=>x.m.r===ri).map(x=>x.i);
+    const rdone = idxs.filter(i=>ST.matches[i].w!=null).length;
+    return `<details class="br-round" ${ri<=1?'open':''}>
+      <summary><b>${rd.l}</b><span class="br-cnt">${rdone}/${rd.n}</span></summary>
+      ${rd.note?`<div class="br-note">${rd.note}</div>`:''}
+      ${idxs.map(mi=>`
+        <div class="br-m">
+          <div class="br-no">${matchNoIn(mi)}</div>
+          <div class="br-pair">${cell(mi,'a')}${cell(mi,'b')}</div>
+        </div>`).join('')}
+    </details>`;
+  }).join('') + (IS_ADMIN && !VIEWING_SHARE ? `
+    <div class="muted" style="margin-top:10px;line-height:1.7">
+      抽選（8/1 17時）の組み合わせを見ながら学校を入れてください。<br>
+      <b>学校をタップすると勝ち</b>になります（もう一度押すと取り消し）。<br>
+      学校を入れ替えたいときは<b>長押し（PCは右クリック）</b>。
+    </div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn dan" onclick="resetBracket()">対戦表を空にする</button>
+    </div>` : (set===0 ? `<div class="muted" style="margin-top:10px">組み合わせはまだ入っていません（抽選は8/1 17時）。</div>` : ''));
+}
+function resetBracket(){
+  if(!confirm('対戦表を空にします。入力した勝敗も消えますか？\n※学校の勝利数・敗退はそのまま残ります')) return;
+  ST.matches = initMatches(); save(); render(); toast('対戦表を空にしました');
+}
+/* 学校を選ぶシート */
+let _mpTarget = null;
+function openMatchPick(mi, side){
+  _mpTarget = {mi, side};
+  const used = new Set();
+  ST.matches.forEach(m=>{ if(m.a!=null) used.add(m.a); if(m.b!=null) used.add(m.b); });
+  openSheet('学校を選ぶ', `
+    <input id="mp-q" placeholder="学校名・県名で検索" oninput="renderMatchPick()">
+    <div id="mp-list" style="margin-top:10px"></div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn" onclick="clearMatchSlot()">この枠を空にする</button>
+      <button class="btn" onclick="closeSheet()">閉じる</button>
+    </div>`);
+  renderMatchPick();
+}
+function renderMatchPick(){
+  const q = (document.getElementById('mp-q')?.value||'').trim();
+  const used = {};
+  ST.matches.forEach((m,i)=>{ if(m.a!=null) used[m.a]=i; if(m.b!=null) used[m.b]=i; });
+  const list = TEAMS.map((t,i)=>({t,i}))
+    .filter(x=>!q || (x.t.name+x.t.pref).includes(q))
+    .map(x=>{
+      const u = used[x.i]!=null;
+      return `<div class="tm" onclick="setMatchSlot(${x.i})">
+        <div class="tm-no">${x.t.no}</div>
+        <div class="tm-b"><div class="tm-nm">${esc(x.t.name)}</div><div class="tm-pf">${esc(x.t.pref)}${u?' ・ すでに他の試合に入っています':''}</div></div>
+        ${ST.out[x.i]?'<div class="wpill out">敗退</div>':`<div class="wpill ${ST.wins[x.i]?'':'z'}">${ST.wins[x.i]||0}勝</div>`}
+      </div>`;
+    }).join('');
+  document.getElementById('mp-list').innerHTML = list || '<div class="empty">該当なし</div>';
+}
+function setMatchSlot(teamIdx){
+  if(!_mpTarget) return;
+  const {mi, side} = _mpTarget, m = ST.matches[mi];
+  if(m.w!=null){                                   // 勝敗が入っていたら一旦戻す
+    const l = (m.w===m.a)?m.b:m.a;
+    ST.wins[m.w] = Math.max(0,(ST.wins[m.w]||0)-1);
+    if(l!=null) ST.out[l]=false;
+    m.w = null;
+  }
+  m[side] = teamIdx;
+  save(); closeSheet(); render(); toast(`${TEAMS[teamIdx].name} を入れました`);
+}
+function clearMatchSlot(){
+  if(!_mpTarget) return;
+  const {mi, side} = _mpTarget, m = ST.matches[mi];
+  if(m.w!=null){
+    const l=(m.w===m.a)?m.b:m.a;
+    ST.wins[m.w]=Math.max(0,(ST.wins[m.w]||0)-1);
+    if(l!=null) ST.out[l]=false; m.w=null;
+  }
+  m[side]=null; save(); closeSheet(); render();
+}
+
+/* ---- 詳細シート ---- */
+function openPlayer(idx){
+  const rows = ranking(); const r = rows[idx];
+  const det = r.picks.map((v,k)=>({v,k,w:ST.wins[k]||0,pt:v*(ST.wins[k]||0)}))
+                     .sort((a,b)=> b.pt-a.pt || b.v-a.v);
+  const got = det.filter(d=>d.pt>0), yet = det.filter(d=>d.pt===0 && !ST.out[d.k]).slice(0,10);
+  const potential = det.filter(d=>!ST.out[d.k]).reduce((s,d)=>s+d.v,0);
+  openSheet(`${r.name} ・ ${r.rank}位`, `
+    <div class="kv"><span class="k">獲得ポイント</span><span class="v">${r.pt.toLocaleString()} P</span></div>
+    <div class="kv"><span class="k">勝ち残り校に張った点</span><span class="v">${potential} 点</span></div>
+    <div style="margin-top:14px"><div class="card-t">獲得できた校</div>
+    ${got.length? `<table class="tbl"><tr><th>校</th><th style="text-align:right">配点</th><th style="text-align:right">勝</th><th style="text-align:right">P</th></tr>`+
+      got.map(d=>`<tr><td>${esc(TEAMS[d.k].name)}${ST.out[d.k]?' <span style="color:var(--ink3);font-size:10.5px">敗</span>':''}</td>
+        <td class="n">${d.v}</td><td class="n">${d.w}</td><td class="n"><b>${d.pt}</b></td></tr>`).join('')+`</table>`
+      : '<div class="muted">まだありません</div>'}</div>
+    <div style="margin-top:14px"><div class="card-t">これから伸びる可能性（勝ち残り・高配点順）</div>
+    ${yet.length? yet.map(d=>`<div class="kv"><span class="k">${esc(TEAMS[d.k].name)}</span><span class="v">${d.v}</span></div>`).join('')
+      : '<div class="muted">なし</div>'}</div>`);
+}
+function openTeam(i){
+  const t = TEAMS[i];
+  const rows = ST.players.map(p=>({name:p.name, v:p.picks[i]||0})).sort((a,b)=>b.v-a.v);
+  openSheet(`${t.name}（${t.pref}）`, `
+    <div class="kv"><span class="k">勝利数</span><span class="v">${ST.wins[i]||0} 勝</span></div>
+    <div class="kv"><span class="k">状態</span><span class="v" style="color:${ST.out[i]?'var(--red)':'var(--green)'}">${ST.out[i]?'敗退':'勝ち残り'}</span></div>
+    <div style="margin-top:14px"><div class="card-t">誰が高く買っているか</div>
+    ${rows.length? rows.map(r=>`<div class="kv"><span class="k">${esc(r.name)}</span><span class="v">${r.v}</span></div>`).join('')
+      : '<div class="muted">まだ予想がありません</div>'}
+    ${rows.length?`<div class="muted" style="margin-top:8px">この校が1つ勝つと、上の点がそのまま各自に入ります。</div>`:''}</div>`);
+}
+function openSheet(title, html){
+  document.getElementById('sheet-t').textContent = title;
+  document.getElementById('sheet-b').innerHTML = html;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+}
+function closeSheet(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+}
+
+/* ============================================================
+   管理：予想の取り込み
+   ============================================================ */
+function normName(s){
+  return String(s||'').replace(/[\s　]/g,'')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[（(].*?[）)]/g,'')
+    .replace(/(高等学校|高校)$/,'');
+}
+function findTeam(label){
+  let s = normName(label);
+  if(!s) return -1;
+  if(ALIAS[s]) s = ALIAS[s];
+  let idx = TEAMS.findIndex(t=>normName(t.name)===s);
+  if(idx>=0) return idx;
+  idx = TEAMS.findIndex(t=>normName(t.name).startsWith(s) && s.length>=2);
+  if(idx>=0) return idx;
+  idx = TEAMS.findIndex(t=>s.startsWith(normName(t.name)) && normName(t.name).length>=2);
+  return idx;
+}
+function parsePicks(text){
+  const picks = new Array(N).fill(0);
+  const errs = [], seen = {};
+  const lines = String(text).replace(/\r/g,'').split('\n');
+  let hit = 0;
+  lines.forEach((raw,ln)=>{
+    const line = raw.trim();
+    if(!line) return;
+    // 全角→半角（数字・コロン）
+    const z = line.replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+                  .replace(/[：]/g,':');
+    const m = z.match(/^\s*(\d{1,2})?\s*[.．、]?\s*(.*?):\s*(\d{1,3})\s*$/);
+    if(!m){ if(/[:：]/.test(z)) errs.push(`${ln+1}行目「${line}」の点数が読めません`); return; }
+    const no = m[1]?parseInt(m[1],10):0;
+    const label = m[2];
+    const val = parseInt(m[3],10);
+    let idx = findTeam(label);
+    if(idx<0 && no>=1 && no<=N) idx = no-1;                 // 校名が読めなければ番号で
+    if(idx<0){ errs.push(`${ln+1}行目「${label}」がどの校か分かりません`); return; }
+    if(no>=1 && no<=N && idx!==no-1){
+      errs.push(`${ln+1}行目：番号(${no})と校名(${label})が食い違っています`); return;
+    }
+    if(picks[idx]){ errs.push(`${TEAMS[idx].name} が2回出てきます`); return; }
+    if(!(val>=1 && val<=N)){ errs.push(`${TEAMS[idx].name} の点数「${val}」が1〜${N}の外です`); return; }
+    if(seen[val]!==undefined){ errs.push(`点数 ${val} が ${TEAMS[seen[val]].name} と ${TEAMS[idx].name} で重複`); return; }
+    seen[val]=idx; picks[idx]=val; hit++;
+  });
+  const missTeam = [], missVal = [];
+  for(let i=0;i<N;i++) if(!picks[i]) missTeam.push(TEAMS[i].name);
+  for(let v=1;v<=N;v++) if(seen[v]===undefined) missVal.push(v);
+  const sum = picks.reduce((s,x)=>s+x,0);
+  return {picks, errs, hit, missTeam, missVal, sum};
+}
+function importCheck(){
+  const name = document.getElementById('imp-name').value.trim();
+  const r = parsePicks(document.getElementById('imp-text').value);
+  const host = document.getElementById('imp-result');
+  const problems = [...r.errs];
+  if(!name) problems.unshift('参加者の名前が入っていません');
+  if(r.missTeam.length) problems.push(`点数が入っていない校が${r.missTeam.length}校：${r.missTeam.slice(0,6).join('・')}${r.missTeam.length>6?' ほか':''}`);
+  if(r.missVal.length)  problems.push(`使われていない点数：${r.missVal.slice(0,10).join(',')}${r.missVal.length>10?' ほか':''}`);
+  if(problems.length){
+    host.innerHTML = `<div class="vres ng"><b>${r.hit}/${N}校 読み取り ・ 合計${r.sum}（正しくは${SUM_ALL}）</b><ul>${problems.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>`;
+    document.getElementById('imp-save').disabled = true; _pendingImport=null; return;
+  }
+  const dup = ST.players.findIndex(p=>p.name===name);
+  host.innerHTML = `<div class="vres ok"><b>OK：${N}校すべて ・ 1〜${N}を重複なく使用 ・ 合計${r.sum}</b>
+    <ul><li>1位に置いた校：${esc(TEAMS[r.picks.indexOf(N)].name)}（${N}点）</li>
+    <li>最下位：${esc(TEAMS[r.picks.indexOf(1)].name)}（1点）</li>
+    ${dup>=0?`<li style="color:#8E2B2B">「${esc(name)}」は登録済みです。上書きされます。</li>`:''}</ul></div>`;
+  _pendingImport = {name, picks:r.picks};
+  document.getElementById('imp-save').disabled = false;
+}
+function importSave(){
+  if(!_pendingImport) return;
+  const i = ST.players.findIndex(p=>p.name===_pendingImport.name);
+  if(i>=0) ST.players[i] = _pendingImport; else ST.players.push(_pendingImport);
+  save();
+  document.getElementById('imp-text').value='';
+  document.getElementById('imp-name').value='';
+  document.getElementById('imp-result').innerHTML='';
+  document.getElementById('imp-save').disabled=true;
+  toast(`${_pendingImport.name} さんを登録しました`);
+  _pendingImport=null; render();
+}
+function refreshNameList(){
+  document.getElementById('imp-names').innerHTML =
+    ST.players.map(p=>`<option value="${esc(p.name)}">`).join('');
+}
+function renderAdminPlayers(){
+  document.getElementById('sub-count').textContent = `${ST.players.length}人 登録済み`;
+  const host = document.getElementById('admin-players');
+  host.innerHTML = ST.players.length ? ST.players.map((p,i)=>`
+    <div class="kv"><span class="k">${esc(p.name)}</span>
+      <span><button class="btn sm dan" onclick="delPlayer(${i})">削除</button></span></div>`).join('')
+    : '<div class="muted">まだ誰も登録されていません</div>';
+}
+function delPlayer(i){
+  if(!confirm(`${ST.players[i].name} さんの予想を削除しますか？`)) return;
+  ST.players.splice(i,1); save(); render(); toast('削除しました');
+}
+
+/* ============================================================
+   管理：結果入力
+   ============================================================ */
+function renderResults(){
+  const chips = document.getElementById('res-chips');
+  chips.innerHTML = [['alive','勝ち残り'],['all','すべて'],['out','敗退']]
+    .map(([k,l])=>`<button class="chip ${_resFilter===k?'on':''}" onclick="_resFilter='${k}';renderResults()">${l}</button>`).join('');
+  let list = TEAMS.map((t,i)=>({t,i}));
+  if(_resFilter==='alive') list=list.filter(x=>!ST.out[x.i]);
+  if(_resFilter==='out')   list=list.filter(x=>ST.out[x.i]);
+  document.getElementById('res-list').innerHTML = list.map(x=>`
+    <div class="tm ${ST.out[x.i]?'out':''}">
+      <div class="tm-no">${x.t.no}</div>
+      <div class="tm-b"><div class="tm-nm">${esc(x.t.name)}</div><div class="tm-pf">${esc(x.t.pref)}</div></div>
+      <div class="wpill ${ST.out[x.i]?'out':(ST.wins[x.i]?'':'z')}">${ST.wins[x.i]||0}勝</div>
+      <div class="btnrow" style="flex:none;gap:5px">
+        <button class="btn sm" onclick="addWin(${x.i},1)" ${ST.out[x.i]?'disabled':''}>勝</button>
+        <button class="btn sm" onclick="addWin(${x.i},-1)">−</button>
+        <button class="btn sm ${ST.out[x.i]?'':'dan'}" onclick="toggleOut(${x.i})">${ST.out[x.i]?'復活':'敗退'}</button>
+      </div>
+    </div>`).join('');
+}
+function addWin(i,d){
+  const v = (ST.wins[i]||0)+d;
+  if(v<0 || v>6) return;
+  ST.wins[i]=v; save(); render(true);
+  if(d>0) celebrateWin(i);
+  checkChamp();
+}
+function toggleOut(i){ ST.out[i]=!ST.out[i]; save(); render(true); checkChamp(); }
+
+/* ---- 勝利の演出 ---- */
+function celebrateWin(i){
+  const gains = ST.players.map(p=>({name:p.name, g:p.picks[i]||0}))
+                          .filter(x=>x.g>0).sort((a,b)=>b.g-a.g);
+  const top = gains.slice(0,3).map(x=>`${x.name} +${x.g}`).join(' ・ ');
+  const vals = ST.players.map(p=>p.picks[i]||0);
+  const gap = vals.length ? Math.max(...vals)-Math.min(...vals) : 0;
+  const gtxt = ST.players.length<2 ? '' : (gap<=6 ? `　差${gap}＝順位はほぼ動かず` : `　差${gap}`);
+  flash(`${TEAMS[i].name}`, `${ST.wins[i]}勝目${top?' ／ '+top:''}${gtxt}`);
+  const host = document.getElementById('rank-list');
+  if(!host || !host.offsetParent) return;          // 順位画面が見えている時だけ
+  setTimeout(()=>{
+    [...host.querySelectorAll('.rk')].forEach(el=>{
+      const hit = gains.find(x=>x.name===el.dataset.nm); if(!hit) return;
+      const r = el.getBoundingClientRect();
+      pop(`+${hit.g}`, Math.min(innerWidth-58, r.right-54), r.top+6);
+    });
+  }, 300);
+}
+function pop(txt,x,y){
+  const el=document.createElement('div');
+  el.className='pop'; el.textContent=txt;
+  el.style.left=x+'px'; el.style.top=y+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
+function flash(title, sub){
+  const el=document.createElement('div');
+  el.className='flash';
+  el.innerHTML=`<div class="t">${esc(title)}</div><div class="s">${esc(sub)}</div>`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1550);
+}
+
+/* ---- 優勝演出 ---- */
+let _champShown = false;
+function checkChamp(){
+  const alive = aliveCount();
+  if(alive!==1 || totalGames()===0){ _champShown=false; return; }
+  if(_champShown) return;
+  _champShown = true;
+  const ci = ST.out.findIndex(o=>!o);
+  const rows = ranking();
+  setTimeout(()=>{
+    document.getElementById('champ-who').textContent = rows.length? rows[0].name : '—';
+    document.getElementById('champ-pt').textContent  = rows.length? `${rows[0].pt.toLocaleString()} P`:'';
+    const prizes = PRIZE_RANKS.map(pr=>{
+      const w = rows.filter(r=>r.rank===pr).map(r=>r.name).join('・');
+      return w ? `${pr}位 ${w}` : '';
+    }).filter(Boolean).join(' ／ ');
+    document.getElementById('champ-tm').innerHTML =
+      `優勝校 ${esc(TEAMS[ci].name)}（${esc(TEAMS[ci].pref)}） ${ST.wins[ci]}勝` +
+      (prizes ? `<div style="margin-top:7px;color:var(--gold);font-weight:700">🎁 飛び賞　${esc(prizes)}</div>` : '');
+    document.getElementById('champ').classList.add('on');
+    confetti();
+  }, 900);
+}
+function closeChamp(){
+  document.getElementById('champ').classList.remove('on');
+  document.getElementById('confetti').classList.remove('on');
+}
+function confetti(){
+  const cv=document.getElementById('confetti'), cx=cv.getContext('2d');
+  cv.width=innerWidth; cv.height=innerHeight; cv.classList.add('on');
+  const cols=['#C8A24A','#FFFFFF','#1B4F7E','#B5763F','#E8D9A8'];
+  const P=[];
+  for(let i=0;i<130;i++) P.push({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    w:5+Math.random()*6, h:8+Math.random()*9,
+    vy:1.8+Math.random()*2.6, vx:-1.1+Math.random()*2.2,
+    a:Math.random()*Math.PI, va:-0.13+Math.random()*0.26,
+    c:cols[(Math.random()*cols.length)|0]
+  });
+  const t0=performance.now();
+  (function loop(t){
+    const el=t-t0;
+    cx.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.a+=p.va;
+      cx.save(); cx.translate(p.x,p.y); cx.rotate(p.a);
+      cx.fillStyle=p.c; cx.globalAlpha = el>3600 ? Math.max(0,1-(el-3600)/900) : 1;
+      cx.fillRect(-p.w/2,-p.h/2,p.w,p.h); cx.restore();
+    });
+    if(el<4500) requestAnimationFrame(loop);
+    else { cx.clearRect(0,0,cv.width,cv.height); cv.classList.remove('on'); }
+  })(t0);
+  setTimeout(()=>{ cx.clearRect(0,0,cv.width,cv.height); cv.classList.remove('on'); }, 5200); // 保険
+}
+
+/* ============================================================
+   共有
+   ============================================================ */
+function shareBase(){
+  const saved = (localStorage.getItem('pb_koshien_base')||'').trim();
+  if(saved) return saved.split('#')[0];
+  if(location.protocol==='http:'||location.protocol==='https:') return location.origin+location.pathname;
+  return '';
+}
+function makeShare(){
+  if(!ST.players.length){ toast('先に予想を登録してください'); return; }
+  const base = shareBase();
+  const host = document.getElementById('share-out');
+  if(!base){
+    host.innerHTML = `<div class="vres ng">先に上の「公開URL」を入れてください。<br>
+      手元のファイルを直接開いて集計しているため、みんなが開くページのURLが分かりません。</div>`;
+    return;
+  }
+  const url = base + '#d=' + encodeState(ST);
+  host.innerHTML = `<textarea id="share-url" style="min-height:76px;font-size:11.5px">${esc(url)}</textarea>
+    <div class="btnrow" style="margin-top:8px">
+      <button class="btn pri" onclick="copyEl('share-url')">リンクをコピー</button>
+      <span class="muted" style="align-self:center">${url.length}文字</span></div>`;
+  copyEl('share-url');
+}
+function copyRankText(){
+  const rows = ranking();
+  const txt = `【甲子園2026夏 途中経過】${totalGames()}試合終了\n` +
+    rows.map(r=>`${r.rank}位 ${r.name} ${r.pt.toLocaleString()}P`).join('\n');
+  copyText(txt);
+}
+function copyEl(id){ const el=document.getElementById(id); if(el) copyText(el.value); }
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast('コピーしました'), ()=>fallbackCopy(t));
+  } else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  const ta=document.createElement('textarea'); ta.value=t;
+  ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand('copy'); toast('コピーしました'); }catch(e){ toast('コピーできませんでした'); }
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   保存・書き出し
+   ============================================================ */
+function exportJson(){
+  const blob = new Blob([JSON.stringify(ST,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`甲子園予想2026夏_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importJson(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{ try{
+      const d=JSON.parse(fr.result);
+      if(!d||!Array.isArray(d.players)) throw new Error('形式が違います');
+      d.wins = (d.wins&&d.wins.length===N)?d.wins:new Array(N).fill(0);
+      d.out  = (d.out &&d.out.length===N)?d.out :new Array(N).fill(false);
+      ST=d; save(); render(); toast('読み込みました');
+    }catch(e){ alert('読み込めませんでした：'+e.message); } };
+  fr.readAsText(f); inp.value='';
+}
+function resetAll(){
+  if(!confirm('登録した予想も結果も全部消えます。よろしいですか？')) return;
+  if(!confirm('本当に消しますか？（元に戻せません）')) return;
+  ST=blankState(); save(); render(); toast('消しました');
+}
+
+/* ============================================================
+   utils
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+let _tt=null;
+function toast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('on');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'),1900);
+}
+function fmtTs(ts){
+  const d=new Date(ts);
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/* ============================================================
+   オープニング
+   ============================================================ */
+function introSub(){
+  const g = totalGames();
+  if(!g){
+    const d = Math.ceil((new Date(2026,7,5) - new Date())/86400000);
+    return d>0 ? `開幕まで あと ${d} 日` : '8月5日 開幕';
+  }
+  const a = aliveCount();
+  return a===1 ? '優勝校 決定' : `${g}試合終了 ・ 勝ち残り ${a}校`;
+}
+function playIntro(){
+  const el = document.getElementById('intro');
+  document.getElementById('intro-sub').textContent = introSub();
+  el.classList.remove('out','hide');
+  void el.offsetWidth;                     // アニメを頭から流し直す
+  setTimeout(endIntro, 2900);
+}
+function endIntro(){
+  const el = document.getElementById('intro');
+  if(!el || el.classList.contains('out')) return;
+  el.classList.add('out');
+  setTimeout(()=>el.classList.add('hide'), 600);
+}
+
+/* ============================================================
+   デモ
+   ============================================================ */
+/* 戦力の目安（＝配点の基準）。デモの勝敗もこれを重みに使う */
+const BASE = [2,11,15,1,43,3,46,10,28,12,14,22,40,25,39,26,44,9,49,21,29,41,32,42,33,34,17,13,45,37,38,31,8,19,27,7,30,36,6,20,35,16,5,23,24,4,18,47,48];
+const DEMO_PEOPLE = [
+  {name:'N',        seed:11, sw:12, oshi:18},
+  {name:'大良',      seed:22, sw:14, oshi:6},
+  {name:'むら',      seed:33, sw:11, oshi:47},
+  {name:'ひかる',    seed:44, sw:16, oshi:28},
+  {name:'一＆おぎ',  seed:55, sw:13, oshi:16},
+  {name:'ひさし',    seed:66, sw:15, oshi:4},
+  {name:'ともや',    seed:77, sw:18, oshi:30},
+  {name:'ぺい',      seed:88, sw:10, oshi:18},
+  {name:'なーりー',  seed:99, sw:30, oshi:41},   // 伏兵好き
+  {name:'洋平',      seed:12, sw:12, oshi:48},
+  {name:'ケン＆でひ',seed:24, sw:28, oshi:38}    // 大穴好き
+];
+function mulberry32(a){
+  return function(){
+    a|=0; a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15, 1|a);
+    t=t+Math.imul(t^t>>>7, 61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+const DEMO_SEED = 29;
+let _demoRnd = mulberry32(DEMO_SEED);
+function demoPicks(p){
+  const rnd = mulberry32(p.seed), a = BASE.slice();
+  for(let k=0;k<p.sw;k++){
+    const i=(rnd()*N)|0, j=(rnd()*N)|0;
+    const t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  if(p.oshi!=null){ const j=a.indexOf(N); const t=a[p.oshi]; a[p.oshi]=N; a[j]=t; }
+  return a;
+}
+function demoState(){
+  const st = blankState();
+  st.players = DEMO_PEOPLE.map(p=>({name:p.name, picks:demoPicks(p)}));
+  st.matches = initMatches(); _demoMi = 0;
+  return st;
+}
+/* 実際の甲子園と同じ構造で組む：49校→1回戦17試合(15校シード)→32→16→8→4→2→1 */
+let _demoQueue = [];
+function demoRebuildQueue(st){
+  const alive=[]; for(let i=0;i<N;i++) if(!st.out[i]) alive.push(i);
+  for(let i=alive.length-1;i>0;i--){ const j=(_demoRnd()*(i+1))|0; const t=alive[i]; alive[i]=alive[j]; alive[j]=t; }
+  const pairs = alive.length===N ? 17 : Math.floor(alive.length/2);   // 初回だけ17試合
+  _demoQueue=[];
+  for(let k=0;k<pairs;k++) _demoQueue.push([alive[k*2], alive[k*2+1]]);
+}
+let _demoMi = 0;
+function demoGame(st){
+  if(!_demoQueue.length) demoRebuildQueue(st);
+  if(!_demoQueue.length) return null;
+  const [a,b] = _demoQueue.shift();
+  const sa = Math.pow(BASE[a]+6,2), sb = Math.pow(BASE[b]+6,2);   // 実力差＋番狂わせの余地
+  const win  = (_demoRnd() < sa/(sa+sb)) ? a : b;
+  const lose = win===a ? b : a;
+  st.wins[win] = (st.wins[win]||0)+1;
+  st.out[lose] = true;
+  if(st.matches && _demoMi < TOTAL_GAMES){                        // 対戦表にも記録
+    st.matches[_demoMi].a = a; st.matches[_demoMi].b = b; st.matches[_demoMi].w = win; _demoMi++;
+  }
+  return {win, lose};
+}
+function startDemo(){
+  IS_DEMO = true; VIEWING_SHARE = false;
+  _demoRnd = mulberry32(DEMO_SEED); _demoQueue = [];
+  ST = demoState();
+  for(let k=0;k<33;k++) demoGame(ST);      // 1回戦17＋2回戦16＝ベスト16まで進めておく
+  _prevPt={}; _prevRank={}; _champShown=false;
+  document.getElementById('hdr-mode').textContent = 'デモ';
+  document.getElementById('demobar').classList.add('on');
+  document.body.style.paddingBottom = 'calc(110px + env(safe-area-inset-bottom,0px))';
+  go('rank'); render(); updateDemoBar();
+  toast('デモデータを入れました');
+}
+function demoNext(){
+  if(!IS_DEMO) return;
+  const r = demoGame(ST);
+  if(!r){ toast('優勝校が決まりました'); return; }
+  render(true);
+  celebrateWin(r.win);
+  updateDemoBar();
+  checkChamp();
+}
+function demoRush(){
+  if(!IS_DEMO) return;
+  const btn=document.getElementById('demo-rush'); btn.disabled=true;
+  (function step(){
+    if(aliveCount()<=1){ btn.disabled=false; return; }
+    demoNext();
+    setTimeout(step, 1350);
+  })();
+}
+function demoReset(){ startDemo(); }
+function updateDemoBar(){
+  const left = Math.max(0, aliveCount()-1);
+  const b=document.getElementById('demo-next');
+  if(b) b.textContent = left? `▶ 1試合すすめる（残${left}）` : '✔ 全試合終了';
+  if(b) b.disabled = !left;
+}
+
+/* ============================================================
+   起動
+   ============================================================ */
+(function init(){
+  // 管理モードの有効化 / 解除
+  const qs = new URLSearchParams(location.search);
+  if(qs.get('admin')==='1'){ localStorage.setItem(LS_ADMIN,'1'); }
+  if(qs.get('admin')==='0'){ localStorage.removeItem(LS_ADMIN); }
+  IS_ADMIN = localStorage.getItem(LS_ADMIN)==='1';
+
+  // 共有データ
+  const h = location.hash||'';
+  const m = h.match(/[#&]d=([A-Za-z0-9\-_]+)/);
+  if(m){
+    try{ ST = decodeState(m[1]); VIEWING_SHARE = true; }
+    catch(e){ ST=null; }
+  }
+  if(!ST){ ST = load() || blankState(); }
+  if(!ST.wins || ST.wins.length!==N) ST.wins=new Array(N).fill(0);
+  if(!ST.out  || ST.out.length !==N) ST.out =new Array(N).fill(false);
+
+  document.getElementById('hdr-mode').textContent = VIEWING_SHARE ? '共有' : (IS_ADMIN ? '管理' : '閲覧');
+  if(IS_ADMIN){
+    document.querySelector('.nav button[data-pg="admin"]').classList.remove('hide');
+    const sb=document.getElementById('share-base');
+    if(sb) sb.value = localStorage.getItem('pb_koshien_base')||'';
+  }
+
+  if(VIEWING_SHARE){
+    const vb=document.getElementById('vbar'); vb.classList.remove('hide');
+    document.getElementById('vbar-txt').textContent = `共有データを表示中（更新 ${fmtTs(ST.ts)}）`;
+    if(IS_ADMIN && load()){
+      const a=document.getElementById('vbar-mine'); a.classList.remove('hide');
+      a.onclick=(e)=>{ e.preventDefault(); location.href = location.pathname + (IS_ADMIN?'?admin=1':''); };
+    }
+  }
+  document.getElementById('hdr-sub').textContent =
+    `第108回全国高校野球選手権 ・ 8/5 開幕 ・ 抽選 8/1 17時` ;
+
+  if(qs.get('demo')==='1'){ startDemo(); updateDemoBar(); }
+  else render();
+
+  // 画面に戻ってきた時：アニメ途中で止まっていても必ず正しい状態に戻す
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) render(); });
+
+  // オープニング（1セッション1回）
+  try{
+    if(!sessionStorage.getItem('pb_intro')){ sessionStorage.setItem('pb_intro','1'); playIntro(); }
+  }catch(e){ playIntro(); }
+})();
+</script>
+</body>
+</html>
