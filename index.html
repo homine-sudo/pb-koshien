@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#123A5E">
-<title>甲子園予想 2026夏</title>
+<title>俺らの甲子園 2026夏</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yuji+Mai&family=Yuji+Boku&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy:#123A5E; --navy2:#1B4F7E; --ink:#1C1F23; --ink2:#4A5360; --ink3:#8A94A2;
@@ -31,6 +34,25 @@ table{border-collapse:collapse;width:100%}
 }
 .hdr-t{font-size:15px;letter-spacing:.06em;display:flex;align-items:baseline;gap:8px}
 .hdr-t .yr{font-size:11px;opacity:.75;letter-spacing:.12em}
+/* 筆記体の題字 */
+.brand{
+  font-family:'Yuji Mai','Yuji Boku','Hiragino Mincho ProN','Yu Mincho',serif;
+  font-size:23px;line-height:1;letter-spacing:.06em;
+  transform:rotate(-2.2deg) skewX(-3deg);transform-origin:left bottom;
+  display:inline-block;text-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+#intro .ttl .jp{
+  font-family:'Yuji Mai','Yuji Boku','Hiragino Mincho ProN','Yu Mincho',serif;
+  font-size:42px;font-weight:400;letter-spacing:.06em;text-indent:0;line-height:1.15;
+  transform:rotate(-3deg) skewX(-4deg);display:inline-block;
+  text-shadow:0 3px 14px rgba(0,0,0,.5),0 0 26px rgba(200,162,74,.28);
+}
+/* 勢いの筆はらい */
+#intro .swoosh{display:block;margin:6px auto 0;width:210px;height:16px;opacity:0;
+  animation:pbrise .7s ease 1.25s forwards}
+#intro .swoosh path{fill:none;stroke:#C8A24A;stroke-linecap:round;
+  stroke-dasharray:260;stroke-dashoffset:260;animation:pbdraw .75s cubic-bezier(.2,.7,.3,1) 1.35s forwards}
+@keyframes pbdraw{to{stroke-dashoffset:0}}
 .hdr-s{font-size:11px;opacity:.8;margin-top:2px}
 .hdr-badge{
   display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;
@@ -146,6 +168,23 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 }
 .toast.on{opacity:1}
 .hide{display:none !important}
+
+/* ========== 締切カウントダウン ========== */
+.cd{
+  background:linear-gradient(180deg,#16406B,#123A5E);border-radius:10px;
+  padding:11px 12px 12px;margin:0 0 18px;color:#fff;text-align:center;
+  box-shadow:0 4px 14px rgba(18,58,94,.22);
+}
+.cd-l{font-size:10.5px;letter-spacing:.12em;opacity:.8}
+.cd-n{margin-top:5px;display:flex;align-items:baseline;justify-content:center;gap:1px;flex-wrap:wrap}
+.cd-n b{font-size:29px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:.01em}
+.cd-n i{font-style:normal;font-size:11px;opacity:.75;margin:0 6px 0 2px}
+.cd-n b.sec{opacity:.72;font-size:22px}
+.cd.urgent{background:linear-gradient(180deg,#9E2B2B,#7E1F1F);box-shadow:0 4px 14px rgba(158,43,43,.28)}
+.cd.urgent .cd-n b{animation:cdpulse 1s ease-in-out infinite}
+@keyframes cdpulse{0%,100%{opacity:1}50%{opacity:.62}}
+.cd.over{background:linear-gradient(180deg,#4A5360,#3A424D)}
+.cd.over .cd-n{font-size:17px;font-weight:800;display:block;letter-spacing:.06em}
 
 /* ========== 受付中の画面 ========== */
 .wait{text-align:center;padding:14px 6px 6px}
@@ -400,9 +439,11 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   <div class="sky"></div>
   <div class="ball"></div>
   <div class="ttl">
-    <div class="jp">甲子園 順位予想</div>
+    <div class="jp">俺らの甲子園</div>
+    <svg class="swoosh" viewBox="0 0 210 16" aria-hidden="true">
+      <path d="M4 12 C 40 3, 78 2, 118 5 C 150 7, 176 9, 204 4" stroke-width="3.2"/>
+    </svg>
     <div class="en">2026 SUMMER</div>
-    <div class="ln"></div>
   </div>
   <div class="sub" id="intro-sub"></div>
   <div class="skip">タップでスキップ</div>
@@ -419,7 +460,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 </div>
 
 <div class="hdr">
-  <div class="hdr-t"><span>甲子園 順位予想</span><span class="yr">2026 SUMMER</span><span class="hdr-badge" id="hdr-mode">閲覧</span></div>
+  <div class="hdr-t"><span class="brand">俺らの甲子園</span><span class="yr">2026 夏</span><span class="hdr-badge" id="hdr-mode">閲覧</span></div>
   <div class="hdr-s" id="hdr-sub">第108回全国高校野球選手権 ・ 8/5 開幕</div>
 </div>
 
@@ -488,6 +529,8 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   <div class="card">
     <div class="card-t">② 提出状況と公開 <span class="sub" id="sub-count"></span></div>
     <div id="publish-box"></div>
+    <label class="lb">提出の締切</label>
+    <input type="datetime-local" id="deadline-input" onchange="saveDeadline()">
     <label class="lb">参加する人（1行に1人）</label>
     <textarea id="roster-text" style="min-height:104px" placeholder="N&#10;大良&#10;むら&#10;…"></textarea>
     <div class="btnrow" style="margin-top:8px">
@@ -750,12 +793,45 @@ function submitState(){
   const extra = done.filter(n=>!roster.includes(n));
   return { done, roster, yet, extra, total: roster.length || done.length, ready: roster.length>0 && yet.length===0 };
 }
+/* ---- 提出締切のカウントダウン ---- */
+const DEFAULT_DEADLINE = '2026-07-31T12:00';
+function deadlineAt(){
+  const d = new Date(ST.deadline || DEFAULT_DEADLINE);
+  return isNaN(d) ? null : d;
+}
+function countdownHtml(){
+  const d = deadlineAt(); if(!d) return '';
+  const ms = d - Date.now();
+  const f = n => String(n).padStart(2,'0');
+  const label = `${d.getMonth()+1}/${d.getDate()} ${f(d.getHours())}:${f(d.getMinutes())} 締切`;
+  if(ms <= 0) return `<div class="cd over"><div class="cd-l">${label}</div>
+    <div class="cd-n">締切を過ぎました</div></div>`;
+  const s = Math.floor(ms/1000), dd = Math.floor(s/86400), hh = Math.floor(s%86400/3600),
+        mm = Math.floor(s%3600/60), ss = s%60;
+  const urgent = ms < 6*3600*1000;
+  return `<div class="cd ${urgent?'urgent':''}">
+    <div class="cd-l">${label}まで あと</div>
+    <div class="cd-n">
+      ${dd?`<b>${dd}</b><i>日</i>`:''}<b>${dd?f(hh):hh}</b><i>時間</i><b>${f(mm)}</b><i>分</i><b class="sec">${f(ss)}</b><i>秒</i>
+    </div></div>`;
+}
+let _cdTimer = null;
+function startCountdown(){
+  clearInterval(_cdTimer);
+  const tick = ()=>{
+    const el = document.getElementById('cd-host');
+    if(!el){ clearInterval(_cdTimer); _cdTimer=null; return; }
+    el.innerHTML = countdownHtml();
+  };
+  tick(); _cdTimer = setInterval(tick, 1000);
+}
 function renderWaiting(){
   const s = submitState();
   const host = document.getElementById('rank-list');
   const pct = s.total ? Math.round(s.done.length/s.total*100) : 0;
   host.innerHTML = `
     <div class="wait">
+      <div id="cd-host"></div>
       <div class="wait-h">予想を受付中</div>
       <div class="wait-n"><b>${s.done.length}</b><span> / ${s.total||'—'} 人</span></div>
       <div class="wait-bar"><i style="width:${pct}%"></i></div>
@@ -773,6 +849,7 @@ function renderWaiting(){
       </div>
     </div>`;
   document.getElementById('rank-sub').textContent = '公開前';
+  startCountdown();
 }
 
 /* ---- 順位（入れ替わりアニメ付き） ---- */
@@ -1521,6 +1598,12 @@ function refreshNameList(){
   document.getElementById('imp-names').innerHTML =
     ST.players.map(p=>`<option value="${esc(p.name)}">`).join('');
 }
+function saveDeadline(){
+  if(!canEdit('締切を変更')) return;
+  const v = (document.getElementById('deadline-input').value||'').trim();
+  ST.deadline = v || DEFAULT_DEADLINE;
+  save(); render(); toast('締切を設定しました');
+}
 function saveRoster(){
   if(!canEdit('参加者を登録')) return;
   const t = (document.getElementById('roster-text').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
@@ -1564,6 +1647,8 @@ function renderAdminPlayers(){
   }
   const rt = document.getElementById('roster-text');
   if(rt && document.activeElement!==rt) rt.value = (ST.roster||[]).join('\n');
+  const di = document.getElementById('deadline-input');
+  if(di && document.activeElement!==di) di.value = ST.deadline || DEFAULT_DEADLINE;
 
   const host = document.getElementById('admin-players');
   host.innerHTML = ST.players.length ? ST.players.map((p,i)=>`
@@ -1776,7 +1861,7 @@ function exportJson(){
   const blob = new Blob([JSON.stringify(ST,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`甲子園予想2026夏_${new Date().toISOString().slice(0,10)}.json`;
+  a.download=`俺らの甲子園2026夏_${new Date().toISOString().slice(0,10)}.json`;
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 function importJson(inp){
