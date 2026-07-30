@@ -147,6 +147,34 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .toast.on{opacity:1}
 .hide{display:none !important}
 
+/* ========== 提出の記録 ========== */
+.submit-box{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:0 11px}
+.submit-box>summary{list-style:none;cursor:pointer;padding:8px 0;font-size:12px;font-weight:700;color:var(--ink2)}
+.submit-box>summary::-webkit-details-marker{display:none}
+.submit-box>summary::before{content:'▸ ';color:var(--ink3)}
+.submit-box[open]>summary::before{content:'▾ '}
+.submit-list{display:flex;flex-wrap:wrap;gap:5px;padding-bottom:8px}
+.submit-chip{
+  display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:12px;
+  padding:3px 9px;font-size:11px;background:#fff;
+}
+.submit-chip b{font-weight:700}
+.submit-chip em{font-style:normal;color:var(--ink3);font-size:10px}
+.submit-chip i{font-style:normal;font-weight:800;color:var(--navy2);font-variant-numeric:tabular-nums;
+  background:#EEF2F7;border-radius:4px;padding:0 4px}
+.submit-chip u{text-decoration:none;color:#B5763F;font-size:10px;font-weight:700}
+
+/* ========== 自動取り込みの帯 ========== */
+.autobar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  border-radius:8px;padding:7px 11px;margin-bottom:10px;font-size:11.5px;line-height:1.5;
+}
+.autobar.auto-ok  {background:#EEF4FA;border:1px solid #CBDDEE;color:var(--navy2)}
+.autobar.auto-load{background:#F4F6F8;border:1px solid var(--line);color:var(--ink3)}
+.autobar.auto-warn{background:#FFF6E6;border:1px solid #EEDBAE;color:#8A6A18}
+.autobar.auto-fail{background:#FBEDED;border:1px solid #E8C4C4;color:#8E2B2B}
+.autobar .btn{flex:none}
+
 /* ========== 対戦表 ========== */
 .br-round{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
 .br-round>summary{
@@ -382,6 +410,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <!-- ============ 順位 ============ -->
 <div class="wrap" id="pg-rank">
+  <div id="auto-bar"></div>
   <div class="card">
     <div class="card-t">現在の順位 <span class="sub" id="rank-sub"></span></div>
     <div id="rank-list"></div>
@@ -442,7 +471,8 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   </div>
 
   <div class="card">
-    <div class="card-t">③ 試合結果の入力 <span class="sub">対戦表を使わないときの手入力</span></div>
+    <div class="card-t">③ 試合結果 <span class="sub">ふだんは自動。手入力は非常用</span></div>
+    <div id="auto-panel"></div>
     <div id="res-warn"></div>
     <div class="chips" id="res-chips"></div>
     <div id="res-list"></div>
@@ -529,7 +559,9 @@ const SUM_ALL = N*(N+1)/2;                 // 1225
 const ALIAS = {
  '高岡商業':'高岡商','八幡商業':'八幡商','佐賀商業':'佐賀商','大分商業':'大分商',
  '鹿ヶ浦':'霞ケ浦','霞ヶ浦':'霞ケ浦','関東一':'関東第一','東日本大昌平':'東日大昌平',
- '聖隷':'聖隷クリストファー','智辯和歌山':'智弁和歌山','中京高':'中京','社高':'社'
+ '聖隷':'聖隷クリストファー','智辯和歌山':'智弁和歌山','中京高':'中京','社高':'社',
+ '市立福山':'福山','福山市立福山':'福山','東日本大昌平':'東日大昌平','東日本国際大昌平':'東日大昌平',
+ '拓大紅陵':'拓大紅陵','東海大甲府':'東海大甲府','立正大淞南':'立正大淞南'
 };
 
 /* ============================================================
@@ -537,6 +569,12 @@ const ALIAS = {
    ============================================================ */
 const LS_KEY = 'pb_koshien_2026s';
 const LS_ADMIN = 'pb_koshien_admin';
+const LS_PASS = 'pb_koshien_pass';
+function passHash(s){
+  let h = 5381;
+  for(const c of String(s)) h = ((h*33) ^ c.charCodeAt(0)) >>> 0;
+  return 'h'+h.toString(36);
+}
 let ST = null;          // {players:[{name,picks:[49]}], wins:[49], out:[49 bool], ts}
 let IS_ADMIN = false;
 let VIEWING_SHARE = false;
@@ -647,6 +685,7 @@ function go(pg){
   render();
 }
 function render(anim){
+  renderAutoBar();
   renderRank(anim); renderProgress(); renderTeams(); renderPicks(); renderBracket();
   if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); renderIntegrity(); }
 }
@@ -872,7 +911,18 @@ function renderPicks(){
   // 差がつく校 上位3つ（勝ち残りのみ）
   const hot = list.filter(x=>!ST.out[x.i]).slice().sort((a,b)=>b.gap-a.gap).slice(0,3);
 
+  const subm = rows.map(r=>{
+    const p = ST.players.find(x=>x.name===r.name) || {};
+    return `<span class="submit-chip"><b>${esc(r.name)}</b>
+      <em>${p.lockedAt?fmtTs(p.firstAt||p.lockedAt)+' 提出':'—'}</em>
+      <i>${pickCode(p.picks||[])}</i>${p.editCount?`<u>差替${p.editCount}回</u>`:''}</span>`;
+  }).join('');
+
   host.innerHTML = head + `
+    <details class="submit-box"><summary>提出の記録（確認コード）</summary>
+      <div class="submit-list">${subm}</div>
+      <div class="muted" style="margin-top:6px">4桁は予想から計算した確認コード。<b>自分のコードを覚えておけば、後から書き換えられていないか誰でも確かめられます。</b>差し替えるとコードが変わり、「差替N回」と表示されます。</div>
+    </details>
     ${hot.length?`<div class="hotbox">🔥 <b>ここが勝つと順位が動く</b>（勝ち残りの中で差が大きい校）<br>
       ${hot.map(x=>`<span class="hotitem">${esc(x.t.name)} <em>差${x.gap}</em></span>`).join('')}</div>`:''}
     <div class="pm-wrap">
@@ -987,6 +1037,96 @@ function resetBracket(){
   if(!confirm('対戦表を空にします。入力した勝敗も消えますか？\n※学校の勝利数・敗退はそのまま残ります')) return;
   ST.matches = initMatches(); save(); render(); toast('対戦表を空にしました');
 }
+/* ============================================================
+   試合結果の自動取り込み（スポーツナビ → GitHub Actions → data/games.json）
+   ============================================================ */
+const GAMES_URL = 'data/games.json';          // 同じサーバーなので CORS の問題が起きない
+let AUTO = { state:'idle', at:0, msg:'', unmatched:[], data:null };
+
+function autoEnabled(){ return localStorage.getItem('pb_koshien_auto') !== 'off'; }
+function setAuto(on){ localStorage.setItem('pb_koshien_auto', on?'on':'off'); if(on) fetchGames(true); else render(); }
+
+/* Yahooの校名 → こちらの校番号。1つでも分からなければ取り込まない（fail-closed） */
+function mapGames(games){
+  const unmatched = new Set();
+  const conv = g => {
+    const f = nm => { if(!nm) return null; const i=findTeam(nm); if(i<0){ unmatched.add(nm); return undefined; } return i; };
+    return { round:g.round, no:Number((g.no.match(/\d+/)||[0])[0]), date:g.date,
+             a:f(g.home), b:f(g.away), w:f(g.winner), hs:g.homeScore, as:g.awayScore };
+  };
+  const list = games.map(conv);
+  return { list, unmatched:[...unmatched] };
+}
+/* 取り込んだ内容で対戦表・勝ち数・敗退を作り直す（何度やっても同じ結果になる） */
+function buildFromGames(list){
+  const ms = initMatches();
+  ROUNDS.forEach((rd,ri)=>{
+    const base = ms.findIndex(m=>m.r===ri);
+    list.filter(g=>g.round===rd.l).sort((x,y)=>x.no-y.no).forEach((g,k)=>{
+      if(k>=rd.n) return;
+      const m = ms[base+k];
+      m.a = (g.a===undefined?null:g.a); m.b = (g.b===undefined?null:g.b);
+      m.w = (g.w===undefined?null:g.w);
+      if(m.w!=null && m.w!==m.a && m.w!==m.b) m.w = null;   // 念のため
+    });
+  });
+  const wins=new Array(N).fill(0), out=new Array(N).fill(false);
+  ms.forEach(m=>{ if(m.w==null) return; wins[m.w]++; const l=(m.w===m.a)?m.b:m.a; if(l!=null) out[l]=true; });
+  return {matches:ms, wins, out};
+}
+async function fetchGames(silent){
+  if(IS_DEMO){ return; }
+  AUTO.state='loading'; if(!silent) render();
+  try{
+    const res = await fetch(GAMES_URL + '?t=' + Math.floor(Date.now()/60000), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d = await res.json();
+    if(!d || !Array.isArray(d.games)) throw new Error('形式が違います');
+    AUTO.data = d;
+    const {list, unmatched} = mapGames(d.games);
+    AUTO.unmatched = unmatched;
+    if(unmatched.length){
+      AUTO.state='warn';
+      AUTO.msg = `校名が照合できません：${unmatched.slice(0,3).join('・')}${unmatched.length>3?' ほか':''}`;
+      render(); return;
+    }
+    AUTO.state='ok'; AUTO.at=Date.now();
+    AUTO.msg = `${d.counts.decided}試合 決着 ／ 取得 ${fmtTs(new Date(d.fetchedAt).getTime())}`;
+    if(autoEnabled() && !VIEWING_SHARE){
+      const b = buildFromGames(list);
+      const changed = JSON.stringify(b.wins)!==JSON.stringify(ST.wins) || JSON.stringify(b.matches)!==JSON.stringify(ST.matches);
+      if(changed){
+        const before = totalGames();
+        ST.matches=b.matches; ST.wins=b.wins; ST.out=b.out;
+        save(); render(true);
+        const diff = totalGames()-before;
+        if(diff>0 && !silent) toast(`試合結果を${diff}件 取り込みました`);
+        checkChamp();
+        return;
+      }
+    }
+    render();
+  }catch(e){
+    AUTO.state='fail'; AUTO.msg=String(e.message||e);
+    if(!silent) toast('結果の取得に失敗しました');
+    render();
+  }
+}
+function renderAutoBar(){
+  const host=document.getElementById('auto-bar'); if(!host) return;
+  if(IS_DEMO || VIEWING_SHARE){ host.innerHTML=''; return; }
+  const m = {
+    idle:   ['', ''],
+    loading:['auto-load','結果を確認しています…'],
+    ok:     ['auto-ok',  '📡 '+AUTO.msg],
+    warn:   ['auto-warn','⚠️ '+AUTO.msg],
+    fail:   ['auto-fail','⚠️ 結果を取得できませんでした（手入力に切り替えてください）']
+  }[AUTO.state] || ['',''];
+  if(!m[1]){ host.innerHTML=''; return; }
+  host.innerHTML = `<div class="autobar ${m[0]}"><span>${esc(m[1])}</span>` +
+    (IS_ADMIN?`<button class="btn sm" onclick="fetchGames(false)">今すぐ確認</button>`:'') + `</div>`;
+}
+
 /* ============================================================
    集計の整合性チェック（対戦表と勝ち数がズレていないか）
    ============================================================ */
@@ -1175,7 +1315,12 @@ function findTeam(label){
   idx = TEAMS.findIndex(t=>normName(t.name).startsWith(s) && s.length>=2);
   if(idx>=0) return idx;
   idx = TEAMS.findIndex(t=>s.startsWith(normName(t.name)) && normName(t.name).length>=2);
-  return idx;
+  if(idx>=0) return idx;
+  // 「市立福山」→「福山」のように途中に入っている場合。
+  // ただし候補が2つ以上あるときは決めつけず -1 を返す（誤った学校に勝ちを付けない）
+  const cands = TEAMS.map((t,i)=>({i,n:normName(t.name)}))
+                     .filter(x=>x.n.length>=2 && s.includes(x.n));
+  return cands.length===1 ? cands[0].i : -1;
 }
 function parsePicks(text){
   const picks = new Array(N).fill(0);
@@ -1230,10 +1375,29 @@ function importCheck(){
   _pendingImport = {name, picks:r.picks};
   document.getElementById('imp-save').disabled = false;
 }
+/* 予想の確認コード（本人が「自分の予想が後から書き換わっていない」ことを確かめられる） */
+function pickCode(picks){
+  let h = 2166136261;
+  for(const v of picks){ h ^= v; h = Math.imul(h, 16777619); }
+  return ('0000' + ((h>>>0) % 10000)).slice(-4);
+}
 function importSave(){
   if(!_pendingImport) return;
   const i = ST.players.findIndex(p=>p.name===_pendingImport.name);
-  if(i>=0) ST.players[i] = _pendingImport; else ST.players.push(_pendingImport);
+  if(i>=0){
+    const cur = ST.players[i];
+    if(cur.lockedAt){
+      if(!confirm(`「${cur.name}」の予想は ${fmtTs(cur.lockedAt)} に確定しています。\n\n書き換えると記録が残ります（確認コードも変わります）。\n本当に差し替えますか？`)) return;
+      _pendingImport.editCount = (cur.editCount||0)+1;
+      _pendingImport.editedAt  = Date.now();
+      _pendingImport.firstAt   = cur.firstAt || cur.lockedAt;
+    }
+    ST.players[i] = _pendingImport;
+  } else {
+    ST.players.push(_pendingImport);
+  }
+  _pendingImport.lockedAt = _pendingImport.lockedAt || Date.now();
+  _pendingImport.firstAt  = _pendingImport.firstAt  || _pendingImport.lockedAt;
   save();
   document.getElementById('imp-text').value='';
   document.getElementById('imp-name').value='';
@@ -1263,6 +1427,26 @@ function delPlayer(i){
    管理：結果入力
    ============================================================ */
 function renderResults(){
+  const ap = document.getElementById('auto-panel');
+  if(ap){
+    const d = AUTO.data;
+    ap.innerHTML = `
+      <div class="kv"><span class="k">自動取り込み</span><span class="v">
+        <button class="btn sm ${autoEnabled()?'pri':''}" onclick="setAuto(${!autoEnabled()})">${autoEnabled()?'ON':'OFF'}</button></span></div>
+      ${d?`<div class="kv"><span class="k">取得できた試合</span><span class="v">${d.counts.games} 試合</span></div>
+          <div class="kv"><span class="k">対戦が決まった試合</span><span class="v">${d.counts.paired} 試合</span></div>
+          <div class="kv"><span class="k">勝敗が出た試合</span><span class="v">${d.counts.decided} 試合</span></div>
+          <div class="kv"><span class="k">最終取得</span><span class="v">${fmtTs(new Date(d.fetchedAt).getTime())}</span></div>`:''}
+      ${AUTO.unmatched.length?`<div class="vres ng" style="margin-top:8px"><b>校名が照合できません</b><br>
+        ${esc(AUTO.unmatched.join('・'))}<br>この場合は取り込みを止めています（手入力してください）。</div>`:''}
+      <div class="btnrow" style="margin-top:10px">
+        <button class="btn pri" onclick="fetchGames(false)">今すぐ取り込む</button>
+      </div>
+      <p class="muted" style="margin:8px 0 0">スポーツナビの日程・結果ページを30分おきに自動で取りに行き、対戦表と勝敗を作り直します。
+      ONのままにしておけば、大会中は何もしなくても順位が更新されます（みんなの画面も同じ）。</p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+      <div class="card-t" style="border-left-color:var(--ink3)">手入力（自動が使えないとき）</div>`;
+  }
   const warn = document.getElementById('res-warn');
   if(warn) warn.innerHTML = bracketInUse()
     ? `<div class="vres ng" style="margin-top:0;margin-bottom:10px">
@@ -1608,10 +1792,24 @@ function updateDemoBar(){
    起動
    ============================================================ */
 (function init(){
-  // 管理モードの有効化 / 解除
+  // 管理モードの有効化 / 解除（パスコードつき）
   const qs = new URLSearchParams(location.search);
-  if(qs.get('admin')==='1'){ localStorage.setItem(LS_ADMIN,'1'); }
-  if(qs.get('admin')==='0'){ localStorage.removeItem(LS_ADMIN); }
+  if(qs.get('admin')==='0'){ localStorage.removeItem(LS_ADMIN); localStorage.removeItem(LS_PASS); }
+  if(qs.get('admin')==='1' && localStorage.getItem(LS_ADMIN)!=='1'){
+    const saved = localStorage.getItem(LS_PASS);
+    if(!saved){
+      const a = prompt('集計担当だけが使う画面です。\n管理パスコードを決めてください（4桁以上・この端末に保存されます）');
+      if(a && a.trim().length>=4){
+        const b = prompt('確認のため、もう一度同じものを入力してください');
+        if(b===a){ localStorage.setItem(LS_PASS, passHash(a.trim())); localStorage.setItem(LS_ADMIN,'1'); }
+        else alert('一致しませんでした');
+      } else if(a!==null) alert('4桁以上にしてください');
+    } else {
+      const a = prompt('管理パスコードを入力してください');
+      if(a && passHash(a.trim())===saved) localStorage.setItem(LS_ADMIN,'1');
+      else if(a!==null) alert('パスコードが違います');
+    }
+  }
   IS_ADMIN = localStorage.getItem(LS_ADMIN)==='1';
 
   // 共有データ
@@ -1646,8 +1844,17 @@ function updateDemoBar(){
   if(qs.get('demo')==='1'){ startDemo(); updateDemoBar(); }
   else render();
 
+  // 試合結果の自動取り込み：起動直後・10分ごと・画面に戻ってきた時
+  if(!IS_DEMO && !VIEWING_SHARE){
+    setTimeout(()=>fetchGames(true), 600);
+    setInterval(()=>{ if(!document.hidden) fetchGames(true); }, 10*60*1000);
+  }
   // 画面に戻ってきた時：アニメ途中で止まっていても必ず正しい状態に戻す
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) render(); });
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) return;
+    render();
+    if(!IS_DEMO && !VIEWING_SHARE && Date.now()-AUTO.at > 5*60*1000) fetchGames(true);
+  });
 
   // オープニング（1セッション1回）
   try{
