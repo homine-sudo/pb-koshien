@@ -118,6 +118,33 @@ ok('「商業」だけでは照合しない', A.findTeam('商業')<0);
 ok('空文字は照合しない', A.findTeam('')<0);
 ok('「未定」は照合しない', A.findTeam('未定')<0, A.findTeam('未定')>=0?A.TEAMS[A.findTeam('未定')].name:'');
 
+console.log('\n[5c] 公開ゲート（提出がそろうまで見せない）');
+{
+  const B = new Function(`${body}
+    return {blankState,submitState,isPublished,encodeState,decodeState,setST:s=>{ST=s;},getST:()=>ST,TEAMS};`)();
+  const st = B.blankState();
+  B.setST(st);
+  ok('新規は「受付中」（公開されていない）', B.isPublished()===false, String(B.isPublished()));
+  st.roster = ['A','B','C'];
+  st.players = [{name:'A',picks:[]},{name:'B',picks:[]}];
+  const s1 = B.submitState();
+  eq('提出ずみ2人', s1.done, ['A','B']);
+  eq('まだの人はC', s1.yet, ['C']);
+  ok('全員そろっていない', s1.ready===false);
+  st.players.push({name:'C',picks:[]});
+  ok('3人そろったら公開できる', B.submitState().ready===true);
+  st.players.push({name:'D',picks:[]});
+  eq('名簿にない人を検出', B.submitState().extra, ['D']);
+  // 共有リンクに公開フラグが乗るか
+  st.players = [{name:'A',picks:A.TEAMS.map((_,i)=>i+1)}];
+  st.published = false;
+  const d1 = B.decodeState(B.encodeState(st));
+  ok('非公開のまま往復する', d1.published===false, String(d1.published));
+  eq('参加者名簿も往復する', d1.roster, ['A','B','C']);
+  st.published = true;
+  ok('公開ずみも往復する', B.decodeState(B.encodeState(st)).published===true);
+}
+
 console.log('\n[6] 予想の確認コード');
 const p1=A.TEAMS.map((_,i)=>i+1), p2=p1.slice(); [p2[0],p2[1]]=[p2[1],p2[0]];
 ok('同じ予想なら同じコード', A.pickCode(p1)===A.pickCode(p1.slice()));

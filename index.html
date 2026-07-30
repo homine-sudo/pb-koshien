@@ -147,6 +147,26 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .toast.on{opacity:1}
 .hide{display:none !important}
 
+/* ========== 受付中の画面 ========== */
+.wait{text-align:center;padding:14px 6px 6px}
+.wait-h{font-size:12px;letter-spacing:.14em;color:var(--ink3)}
+.wait-n{margin:6px 0 10px}
+.wait-n b{font-size:40px;font-weight:800;color:var(--navy);line-height:1}
+.wait-n span{font-size:14px;color:var(--ink2);margin-left:3px}
+.wait-bar{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin:0 auto 16px;max-width:280px}
+.wait-bar i{display:block;height:100%;background:var(--navy2);border-radius:4px;transition:width .6s ease}
+.wait-sec{font-size:11px;color:var(--ink3);letter-spacing:.08em;margin:12px 0 6px}
+.wait-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.wc{font-size:12px;border-radius:13px;padding:4px 11px;font-weight:700;border:1px solid}
+.wc.ok  {background:#EDF6F0;border-color:#BFE0CC;color:#1E5B39}
+.wc.yet {background:#fff;border-color:var(--line2);color:var(--ink3);font-weight:400}
+.wc.none{background:#fff;border-color:var(--line2);color:var(--ink3);font-weight:400}
+.wait-msg{margin-top:18px;font-size:12px;line-height:1.8;color:var(--ink2);
+  background:#F7F8FA;border:1px solid var(--line);border-radius:8px;padding:11px 13px;text-align:left}
+.locked{text-align:center;color:var(--ink2);font-size:12.5px;line-height:1.9;padding:26px 14px;
+  background:#F7F8FA;border:1px solid var(--line);border-radius:8px}
+.locked b{font-size:14px;color:var(--ink)}
+
 /* ========== 提出の記録 ========== */
 .submit-box{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:0 11px}
 .submit-box>summary{list-style:none;cursor:pointer;padding:8px 0;font-size:12px;font-weight:700;color:var(--ink2)}
@@ -466,8 +486,14 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   </div>
 
   <div class="card">
-    <div class="card-t">② 提出状況 <span class="sub" id="sub-count"></span></div>
-    <div id="admin-players"></div>
+    <div class="card-t">② 提出状況と公開 <span class="sub" id="sub-count"></span></div>
+    <div id="publish-box"></div>
+    <label class="lb">参加する人（1行に1人）</label>
+    <textarea id="roster-text" style="min-height:104px" placeholder="N&#10;大良&#10;むら&#10;…"></textarea>
+    <div class="btnrow" style="margin-top:8px">
+      <button class="btn" onclick="saveRoster()">この名前で受付する</button>
+    </div>
+    <div id="admin-players" style="margin-top:12px"></div>
   </div>
 
   <div class="card">
@@ -584,7 +610,8 @@ let _teamFilter = 'all';
 let _resFilter = 'alive';
 
 function blankState(){
-  return { v:2, players:[], wins:new Array(N).fill(0), out:new Array(N).fill(false), matches:null, ts:Date.now() };
+  return { v:3, players:[], wins:new Array(N).fill(0), out:new Array(N).fill(false), matches:null,
+           published:false, roster:[], ts:Date.now() };
 }
 function save(){
   if(VIEWING_SHARE || IS_DEMO) return;
@@ -614,7 +641,7 @@ function b64urlDec(str){
 }
 function encodeState(st){
   const te = new TextEncoder(); const out=[];
-  out.push(2, st.players.length);
+  out.push(3, st.players.length);
   for(const p of st.players){
     const nb = te.encode(p.name);
     out.push(nb.length); for(const b of nb) out.push(b);
@@ -631,11 +658,16 @@ function encodeState(st){
   const ms = (st.matches && st.matches.length===TOTAL_GAMES) ? st.matches : null;
   if(!ms) out.push(0);
   else { out.push(1); ms.forEach(x=>out.push((x.a==null?0:x.a+1),(x.b==null?0:x.b+1),(x.w==null?0:x.w+1))); }
+  // v3：公開フラグ＋参加予定者リスト
+  out.push(st.published?1:0);
+  const ros = st.roster || [];
+  out.push(Math.min(255, ros.length));
+  ros.slice(0,255).forEach(nm=>{ const nb=te.encode(nm); out.push(nb.length); for(const b of nb) out.push(b); });
   return b64urlEnc(Uint8Array.from(out));
 }
 function decodeState(str){
   const a = b64urlDec(str); const td = new TextDecoder(); let i=0;
-  const v=a[i++]; if(v!==1 && v!==2) throw new Error('bad version');
+  const v=a[i++]; if(v!==1 && v!==2 && v!==3) throw new Error('bad version');
   const pc=a[i++]; const players=[];
   for(let p=0;p<pc;p++){
     const nl=a[i++]; const name=td.decode(a.slice(i,i+nl)); i+=nl;
@@ -647,7 +679,7 @@ function decodeState(str){
   for(let b=0;b<7;b++){ const byte=a[i++]; for(let k=0;k<8;k++){ const idx=b*8+k; if(idx<N && (byte&(1<<k))) out[idx]=true; } }
   const ts = ((a[i]<<24)|(a[i+1]<<16)|(a[i+2]<<8)|a[i+3])>>>0; i+=4;
   let matches = null;
-  if(v===2 && a[i++]===1){
+  if(v>=2 && a[i++]===1){
     matches = initMatches();
     for(let k=0;k<TOTAL_GAMES;k++){
       const A=a[i++], B=a[i++], W=a[i++];
@@ -656,7 +688,13 @@ function decodeState(str){
       matches[k].w = W? W-1 : null;
     }
   }
-  return { v:2, players, wins, out, matches, ts: ts*60000 };
+  let published = true, roster = [];        // 古いリンクは公開済みとして扱う
+  if(v>=3){
+    published = a[i++]===1;
+    const rc = a[i++]||0;
+    for(let k=0;k<rc;k++){ const nl=a[i++]; roster.push(td.decode(a.slice(i,i+nl))); i+=nl; }
+  }
+  return { v:3, players, wins, out, matches, published, roster, ts: ts*60000 };
 }
 
 /* ============================================================
@@ -701,10 +739,47 @@ function openPlayerByName(nm){
   if(i>=0) openPlayer(i);
 }
 
+/* ============================================================
+   公開前（受付中）— 予想も順位も見せない
+   ============================================================ */
+function isPublished(){ return !!ST.published; }
+function submitState(){
+  const done = ST.players.map(p=>p.name);
+  const roster = (ST.roster||[]).filter(Boolean);
+  const yet = roster.filter(n=>!done.includes(n));
+  const extra = done.filter(n=>!roster.includes(n));
+  return { done, roster, yet, extra, total: roster.length || done.length, ready: roster.length>0 && yet.length===0 };
+}
+function renderWaiting(){
+  const s = submitState();
+  const host = document.getElementById('rank-list');
+  const pct = s.total ? Math.round(s.done.length/s.total*100) : 0;
+  host.innerHTML = `
+    <div class="wait">
+      <div class="wait-h">予想を受付中</div>
+      <div class="wait-n"><b>${s.done.length}</b><span> / ${s.total||'—'} 人</span></div>
+      <div class="wait-bar"><i style="width:${pct}%"></i></div>
+      ${s.roster.length?`
+        <div class="wait-sec">提出ずみ</div>
+        <div class="wait-chips">${s.done.length?s.done.map(n=>`<span class="wc ok">${esc(n)}</span>`).join(''):'<span class="wc none">まだ0人</span>'}</div>
+        ${s.yet.length?`<div class="wait-sec">まだの人</div>
+          <div class="wait-chips">${s.yet.map(n=>`<span class="wc yet">${esc(n)}</span>`).join('')}</div>`:''}`
+      :`<div class="wait-sec">提出ずみ</div>
+        <div class="wait-chips">${s.done.length?s.done.map(n=>`<span class="wc ok">${esc(n)}</span>`).join(''):'<span class="wc none">まだ0人</span>'}</div>`}
+      <div class="wait-msg">
+        ${s.ready
+          ? '全員そろいました。集計担当が公開すると、みんなの予想と順位が見られます。'
+          : 'みんなの予想と順位は、<b>全員の提出がそろって公開されるまで見られません</b>。<br>先に出した人が不利にならないようにするためです。'}
+      </div>
+    </div>`;
+  document.getElementById('rank-sub').textContent = '公開前';
+}
+
 /* ---- 順位（入れ替わりアニメ付き） ---- */
 let _prevPt = {}, _prevRank = {};
 function renderRank(anim){
   const host = document.getElementById('rank-list');
+  if(!isPublished()){ renderWaiting(); return; }
   const rows = ranking();
   document.getElementById('rank-sub').textContent =
     ST.players.length ? `${ST.players.length}人 ・ ${totalGames()}試合終了` : '';
@@ -864,6 +939,13 @@ function gapStyle(g){
 }
 function renderPicks(){
   const host = document.getElementById('picks-body');
+  if(!isPublished()){
+    const s = submitState();
+    host.innerHTML = `<div class="locked">🔒<br><b>公開までお待ちください</b><br>
+      みんなの予想は、全員の提出がそろって公開されてから見られます。<br>
+      <span class="muted">いま ${s.done.length}${s.total?' / '+s.total:''} 人が提出ずみ</span></div>`;
+    return;
+  }
   if(!ST.players.length){ host.innerHTML='<div class="empty">まだ予想が登録されていません</div>'; return; }
   const rows = ranking();                                   // 列は現在の順位順
   const modes = [['pred','予想'],['pt','獲得P'],['both','両方']];
@@ -1281,10 +1363,11 @@ function openTeam(i){
   openSheet(`${t.name}（${t.pref}）`, `
     <div class="kv"><span class="k">勝利数</span><span class="v">${ST.wins[i]||0} 勝</span></div>
     <div class="kv"><span class="k">状態</span><span class="v" style="color:${ST.out[i]?'var(--red)':'var(--green)'}">${ST.out[i]?'敗退':'勝ち残り'}</span></div>
-    <div style="margin-top:14px"><div class="card-t">誰が高く買っているか</div>
+    ${isPublished() ? `<div style="margin-top:14px"><div class="card-t">誰が高く買っているか</div>
     ${rows.length? rows.map(r=>`<div class="kv"><span class="k">${esc(r.name)}</span><span class="v">${r.v}</span></div>`).join('')
       : '<div class="muted">まだ予想がありません</div>'}
-    ${rows.length?`<div class="muted" style="margin-top:8px">この校が1つ勝つと、上の点がそのまま各自に入ります。</div>`:''}</div>`);
+    ${rows.length?`<div class="muted" style="margin-top:8px">この校が1つ勝つと、上の点がそのまま各自に入ります。</div>`:''}</div>`
+    : `<div class="locked" style="margin-top:14px">🔒 誰が何点入れているかは、公開後に見られます</div>`}`);
 }
 function openSheet(title, html){
   document.getElementById('sheet-t').textContent = title;
@@ -1410,11 +1493,52 @@ function refreshNameList(){
   document.getElementById('imp-names').innerHTML =
     ST.players.map(p=>`<option value="${esc(p.name)}">`).join('');
 }
+function saveRoster(){
+  const t = (document.getElementById('roster-text').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  ST.roster = [...new Set(t)];
+  save(); render(); toast(`参加者 ${ST.roster.length}人 を登録しました`);
+}
+function doPublish(){
+  const s = submitState();
+  if(s.yet.length){
+    if(!confirm(`まだ ${s.yet.length}人 出していません。\n（${s.yet.join('・')}）\n\nこのまま公開しますか？`)) return;
+  } else if(!confirm(`全員の予想を公開します。\n公開すると、みんなが予想と順位を見られるようになります。\n\nよろしいですか？`)) return;
+  ST.published = true; ST.publishedAt = Date.now();
+  save(); render(); go('rank'); toast('公開しました');
+}
+function unPublish(){
+  if(!confirm('公開を取り消して、受付中の状態に戻しますか？\n（すでにリンクを見た人には見えてしまっています）')) return;
+  ST.published = false; save(); render(); toast('受付中に戻しました');
+}
 function renderAdminPlayers(){
-  document.getElementById('sub-count').textContent = `${ST.players.length}人 登録済み`;
+  const s = submitState();
+  document.getElementById('sub-count').textContent =
+    isPublished() ? '公開ずみ' : `${s.done.length}${s.total?' / '+s.total:''}人 提出`;
+
+  const box = document.getElementById('publish-box');
+  if(box){
+    box.innerHTML = isPublished()
+      ? `<div class="vres ok"><b>公開ずみ</b>${ST.publishedAt?`（${fmtTs(ST.publishedAt)}）`:''}<br>
+           みんなが予想と順位を見られる状態です。</div>
+         <div class="btnrow" style="margin:10px 0 4px"><button class="btn dan" onclick="unPublish()">公開を取り消す</button></div>`
+      : `<div class="vres ${s.ready?'ok':'ng'}">
+           <b>受付中：${s.done.length}${s.total?' / '+s.total:''}人 提出ずみ</b><br>
+           ${s.ready ? '全員そろいました。公開できます。'
+                     : (s.yet.length ? 'まだの人：'+esc(s.yet.join('・'))
+                                     : '下の欄に参加者の名前を入れると、誰がまだか出ます。')}
+           ${s.extra.length?`<br><span style="color:#8A6A18">名簿にない人：${esc(s.extra.join('・'))}</span>`:''}
+         </div>
+         <div class="btnrow" style="margin:10px 0 4px">
+           <button class="btn ${s.ready?'pri':''}" onclick="doPublish()">みんなに公開する</button>
+         </div>`;
+  }
+  const rt = document.getElementById('roster-text');
+  if(rt && document.activeElement!==rt) rt.value = (ST.roster||[]).join('\n');
+
   const host = document.getElementById('admin-players');
   host.innerHTML = ST.players.length ? ST.players.map((p,i)=>`
-    <div class="kv"><span class="k">${esc(p.name)}</span>
+    <div class="kv"><span class="k">${esc(p.name)}
+      <span class="muted" style="font-weight:400"> ${p.lockedAt?fmtTs(p.firstAt||p.lockedAt):''} ・ ${pickCode(p.picks)}${p.editCount?' ・ 差替'+p.editCount+'回':''}</span></span>
       <span><button class="btn sm dan" onclick="delPlayer(${i})">削除</button></span></div>`).join('')
     : '<div class="muted">まだ誰も登録されていません</div>';
 }
@@ -1722,8 +1846,10 @@ function demoPicks(p){
 }
 function demoState(){
   const st = blankState();
-  st.players = DEMO_PEOPLE.map(p=>({name:p.name, picks:demoPicks(p)}));
+  st.players = DEMO_PEOPLE.map(p=>({name:p.name, picks:demoPicks(p), lockedAt:Date.now(), firstAt:Date.now()}));
   st.matches = initMatches(); _demoMi = 0;
+  st.roster = DEMO_PEOPLE.map(p=>p.name);
+  st.published = true;                       // デモは中身が見える状態から始める
   return st;
 }
 /* 実際の甲子園と同じ構造で組む：49校→1回戦17試合(15校シード)→32→16→8→4→2→1 */
@@ -1822,6 +1948,8 @@ function updateDemoBar(){
   if(!ST){ ST = load() || blankState(); }
   if(!ST.wins || ST.wins.length!==N) ST.wins=new Array(N).fill(0);
   if(!ST.out  || ST.out.length !==N) ST.out =new Array(N).fill(false);
+  if(typeof ST.published !== 'boolean') ST.published = false;   // 既定は「受付中」
+  if(!Array.isArray(ST.roster)) ST.roster = [];
 
   document.getElementById('hdr-mode').textContent = VIEWING_SHARE ? '共有' : (IS_ADMIN ? '管理' : '閲覧');
   if(IS_ADMIN){
