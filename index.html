@@ -1052,6 +1052,7 @@ function matchNoIn(mi){
 }
 /* 勝者を決める（もう一度押すと取り消し） */
 function pickWinner(mi, side){
+  if(!canEdit('勝敗を入力', true)) return;   // デモは触って試せるように
   ensureMatches();
   const m = ST.matches[mi];
   const w = side==='a' ? m.a : m.b;
@@ -1196,7 +1197,21 @@ async function fetchGames(silent){
 }
 function renderAutoBar(){
   const host=document.getElementById('auto-bar'); if(!host) return;
-  if(IS_DEMO || VIEWING_SHARE){ host.innerHTML=''; return; }
+  const real = location.origin + location.pathname + '?admin=1';
+  if(IS_DEMO){
+    host.innerHTML = `<div class="autobar auto-warn"><span>
+      🧪 <b>デモを見ています</b>（お試し用の作り話のデータです）<br>
+      ここで登録しても保存されません。集計するときは下を開いてください。</span>
+      <button class="btn sm" onclick="location.href='${esc(real)}'">本番を開く</button></div>`;
+    return;
+  }
+  if(VIEWING_SHARE){
+    host.innerHTML = `<div class="autobar auto-warn"><span>
+      🔗 <b>共有リンクを見ています</b>（送られてきた時点の内容）<br>
+      ここで登録しても保存されません。</span>
+      ${IS_ADMIN?`<button class="btn sm" onclick="location.href='${esc(real)}'">本番を開く</button>`:''}</div>`;
+    return;
+  }
   const m = {
     idle:   ['', ''],
     loading:['auto-load','結果を確認しています…'],
@@ -1464,7 +1479,20 @@ function pickCode(picks){
   for(const v of picks){ h ^= v; h = Math.imul(h, 16777619); }
   return ('0000' + ((h>>>0) % 10000)).slice(-4);
 }
+/* 保存されない状態（デモ／共有リンク閲覧中）で入力させない */
+function canEdit(what, allowDemo){
+  if(IS_DEMO && !allowDemo){
+    alert(`いまは「デモ」を開いています。\nここで${what}しても保存されません。\n\n下のURLを開き直してください。\n\n${location.origin}${location.pathname}?admin=1`);
+    return false;
+  }
+  if(VIEWING_SHARE){
+    alert(`いまは「共有リンク」を開いています。\nここで${what}しても保存されません。\n\n下のURLを開き直してください。\n\n${location.origin}${location.pathname}?admin=1`);
+    return false;
+  }
+  return true;
+}
 function importSave(){
+  if(!canEdit('登録')) return;
   if(!_pendingImport) return;
   const i = ST.players.findIndex(p=>p.name===_pendingImport.name);
   if(i>=0){
@@ -1494,11 +1522,13 @@ function refreshNameList(){
     ST.players.map(p=>`<option value="${esc(p.name)}">`).join('');
 }
 function saveRoster(){
+  if(!canEdit('参加者を登録')) return;
   const t = (document.getElementById('roster-text').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
   ST.roster = [...new Set(t)];
   save(); render(); toast(`参加者 ${ST.roster.length}人 を登録しました`);
 }
 function doPublish(){
+  if(!canEdit('公開')) return;
   const s = submitState();
   if(s.yet.length){
     if(!confirm(`まだ ${s.yet.length}人 出していません。\n（${s.yet.join('・')}）\n\nこのまま公開しますか？`)) return;
