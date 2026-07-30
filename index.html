@@ -227,6 +227,13 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   background:#EEF2F7;border-radius:4px;padding:0 4px}
 .submit-chip u{text-decoration:none;color:#B5763F;font-size:10px;font-weight:700}
 
+/* ========== 更新のお知らせ ========== */
+.updbar{
+  display:flex;align-items:center;gap:8px;background:#FFF6E6;border:1px solid #EEDBAE;
+  color:#8A6A18;border-radius:8px;padding:8px 11px;margin-bottom:10px;font-size:12px;font-weight:700;
+}
+.updbar span{flex:1}
+
 /* ========== 自動取り込みの帯 ========== */
 .autobar{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -475,6 +482,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <!-- ============ 順位 ============ -->
 <div class="wrap" id="pg-rank">
+  <div id="upd-bar"></div>
   <div id="auto-bar"></div>
   <div class="card">
     <div class="card-t">現在の順位 <span class="sub" id="rank-sub"></span></div>
@@ -609,7 +617,27 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-07-29';
+const APP_VERSION = '2026-07-30b';
+
+/* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
+function checkForUpdate(){
+  if(location.protocol==='file:') return;
+  fetch(location.pathname + '?_v=' + Date.now(), {cache:'no-store'})
+    .then(r=>r.ok?r.text():null)
+    .then(t=>{
+      if(!t) return;
+      const m = t.match(/const APP_VERSION = '([^']+)'/);
+      if(!m || m[1]===APP_VERSION) return;
+      if(localStorage.getItem('pb_koshien_skipver')===m[1]) return;
+      const bar = document.getElementById('upd-bar');
+      bar.innerHTML = `<div class="updbar">
+        <span>新しい版があります（v${esc(m[1])}）</span>
+        <button class="btn sm pri" onclick="forceUpdate()">更新</button>
+        <button class="btn sm" onclick="localStorage.setItem('pb_koshien_skipver','${esc(m[1])}');document.getElementById('upd-bar').innerHTML='';">あとで</button>
+      </div>`;
+    }).catch(()=>{});
+}
+function forceUpdate(){ location.replace(location.pathname + '?v=' + Date.now()); }
 
 /* ============================================================
    出場49校（2026夏・第108回）
@@ -2252,6 +2280,8 @@ function updateDemoBar(){
   if(!IS_DEMO && !VIEWING_SHARE){
     setTimeout(()=>{ fetchPool(true); fetchGames(true); }, 600);
     setInterval(()=>{ if(!document.hidden){ fetchPool(true); fetchGames(true); } }, 3*60*1000);
+    setTimeout(checkForUpdate, 4000);
+    setInterval(()=>{ if(!document.hidden) checkForUpdate(); }, 20*60*1000);
   }
   // 画面に戻ってきた時：アニメ途中で止まっていても必ず正しい状態に戻す
   document.addEventListener('visibilitychange', ()=>{
