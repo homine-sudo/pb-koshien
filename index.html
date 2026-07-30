@@ -36,23 +36,27 @@ table{border-collapse:collapse;width:100%}
 .hdr-t .yr{font-size:11px;opacity:.75;letter-spacing:.12em}
 /* 筆記体の題字 */
 .brand{
-  font-family:'Yuji Mai','Yuji Boku','Hiragino Mincho ProN','Yu Mincho',serif;
-  font-size:23px;line-height:1;letter-spacing:.06em;
-  transform:rotate(-2.2deg) skewX(-3deg);transform-origin:left bottom;
-  display:inline-block;text-shadow:0 2px 6px rgba(0,0,0,.35);
+  font-family:'Yuji Boku','Yuji Mai','Hiragino Mincho ProN','Yu Mincho',serif;
+  font-size:24px;line-height:1;letter-spacing:.04em;
+  transform:rotate(-2.5deg) skewX(-4deg);transform-origin:left bottom;
+  display:inline-block;text-shadow:0 2px 7px rgba(0,0,0,.4);
 }
+.brand i{font-style:normal;display:inline-block}
 #intro .ttl .jp{
-  font-family:'Yuji Mai','Yuji Boku','Hiragino Mincho ProN','Yu Mincho',serif;
-  font-size:42px;font-weight:400;letter-spacing:.06em;text-indent:0;line-height:1.15;
-  transform:rotate(-3deg) skewX(-4deg);display:inline-block;
-  text-shadow:0 3px 14px rgba(0,0,0,.5),0 0 26px rgba(200,162,74,.28);
+  font-family:'Yuji Boku','Yuji Mai','Hiragino Mincho ProN','Yu Mincho',serif;
+  font-size:46px;font-weight:400;letter-spacing:.02em;text-indent:0;line-height:1.1;
+  transform:rotate(-3.5deg) skewX(-5deg);display:inline-block;
+  text-shadow:0 4px 16px rgba(0,0,0,.55),0 0 30px rgba(200,162,74,.3);
 }
+#intro .ttl .jp i{font-style:normal;display:inline-block;animation:pbstroke .5s cubic-bezier(.2,.8,.3,1) backwards}
 /* 勢いの筆はらい */
 #intro .swoosh{display:block;margin:6px auto 0;width:210px;height:16px;opacity:0;
   animation:pbrise .7s ease 1.25s forwards}
 #intro .swoosh path{fill:none;stroke:#C8A24A;stroke-linecap:round;
   stroke-dasharray:260;stroke-dashoffset:260;animation:pbdraw .75s cubic-bezier(.2,.7,.3,1) 1.35s forwards}
 @keyframes pbdraw{to{stroke-dashoffset:0}}
+@keyframes pbstroke{from{opacity:0;transform:translateY(14px) rotate(-9deg) scale(.86)}
+                    to{opacity:1}}
 .hdr-s{font-size:11px;opacity:.8;margin-top:2px}
 .hdr-badge{
   display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;
@@ -1908,6 +1912,23 @@ function introSub(){
   const a = aliveCount();
   return a===1 ? '優勝校 決定' : `${g}試合終了 ・ 勝ち残り ${a}校`;
 }
+/* 題字を1文字ずつに割り、少しずつ角度・大きさを変えて手書きの勢いを出す */
+const BRAND_TILT = [-5,3,-3,4,-2,5];      // 文字ごとの傾き（度）
+const BRAND_LIFT = [0,2,-1,1,-2,0];       // 文字ごとの上下（px）
+function paintBrandTitle(){
+  document.querySelectorAll('.brand, #intro .ttl .jp').forEach(el=>{
+    const txt = el.dataset.raw || el.textContent;
+    el.dataset.raw = txt;
+    const big = el.classList.contains('jp');
+    el.innerHTML = [...txt].map((c,i)=>{
+      const t = BRAND_TILT[i%BRAND_TILT.length] * (big?1:.6);
+      const y = BRAND_LIFT[i%BRAND_LIFT.length] * (big?1:.6);
+      const s = 1 + (i%3===0 ? .06 : 0);
+      return `<i style="transform:rotate(${t}deg) translateY(${y}px) scale(${s});`
+           + (big?`animation-delay:${.95 + i*.07}s`:'') + `">${esc(c)}</i>`;
+    }).join('');
+  });
+}
 function playIntro(){
   const el = document.getElementById('intro');
   document.getElementById('intro-sub').textContent = introSub();
@@ -2098,6 +2119,9 @@ function updateDemoBar(){
     render();
     if(!IS_DEMO && !VIEWING_SHARE && Date.now()-AUTO.at > 5*60*1000) fetchGames(true);
   });
+
+  // 題字を1文字ずつに割って、手書きらしい傾きをつける
+  paintBrandTitle();
 
   // オープニング（1セッション1回）
   try{
