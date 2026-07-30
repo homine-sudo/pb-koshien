@@ -569,6 +569,11 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   </div>
 
   <div class="card">
+    <div class="card-t">⑦ みんなへの配信 <span class="sub">予想と受付状況を全員に届ける</span></div>
+    <div id="pool-box"></div>
+  </div>
+
+  <div class="card">
     <div class="card-t">⑥ データの保存</div>
     <p class="muted" style="margin:0 0 10px">この端末のブラウザに自動保存されています。念のためファイルにも書き出せます。</p>
     <div class="btnrow">
@@ -772,7 +777,7 @@ function go(pg){
 function render(anim){
   renderAutoBar();
   renderRank(anim); renderProgress(); renderTeams(); renderPicks(); renderBracket();
-  if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); renderIntegrity(); }
+  if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); renderIntegrity(); renderPoolBox(); }
 }
 
 /* ---- 飛び賞 ---- */
@@ -1306,6 +1311,140 @@ function renderAutoBar(){
 }
 
 /* ============================================================
+   みんなへの配信（予想・名簿・公開状態をサーバーに置く）
+   　集計担当のブラウザ → GitHub → data/pool.json → 全員のブラウザ
+   ============================================================ */
+const REPO = 'homine-sudo/pb-koshien';
+const POOL_URL = 'data/pool.json';
+const LS_TOKEN = 'pb_koshien_gh';           // 配信キー（この端末にだけ保存。ページには含まれない）
+let POOL = { state:'idle', msg:'', at:0 };
+
+function hasToken(){ return !!localStorage.getItem(LS_TOKEN); }
+function poolPayload(){
+  return {
+    v: 1,
+    published: !!ST.published,
+    roster: ST.roster || [],
+    deadline: ST.deadline || DEFAULT_DEADLINE,
+    players: (ST.players||[]).map(p=>({
+      name:p.name, picks:p.picks, lockedAt:p.lockedAt||null,
+      firstAt:p.firstAt||null, editCount:p.editCount||0
+    })),
+    updatedAt: Date.now()
+  };
+}
+function applyPool(d){
+  ST.published = !!d.published;
+  ST.roster    = Array.isArray(d.roster) ? d.roster : [];
+  ST.deadline  = d.deadline || DEFAULT_DEADLINE;
+  ST.players   = Array.isArray(d.players) ? d.players : [];
+  ST.poolAt    = d.updatedAt || 0;
+}
+function b64utf8(s){
+  const b = new TextEncoder().encode(s); let x='';
+  b.forEach(c=>{ x += String.fromCharCode(c); });
+  return btoa(x);
+}
+async function ghPutFile(path, text, message){
+  const tok = localStorage.getItem(LS_TOKEN);
+  if(!tok) throw new Error('配信キーが未設定です');
+  const url = `https://api.github.com/repos/${REPO}/contents/${path}`;
+  const head = { 'Authorization':'Bearer '+tok, 'Accept':'application/vnd.github+json' };
+  let sha = null;
+  const g = await fetch(url+'?t='+Date.now(), {headers:head, cache:'no-store'});
+  if(g.ok) sha = (await g.json()).sha;
+  else if(g.status===401 || g.status===403) throw new Error('配信キーが使えません（権限を確認してください）');
+  else if(g.status!==404) throw new Error('GitHub '+g.status);
+  const body = { message, content: b64utf8(text) };
+  if(sha) body.sha = sha;
+  const r = await fetch(url, {method:'PUT', headers:{...head,'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  if(!r.ok) throw new Error('GitHub '+r.status+'：'+(await r.text()).slice(0,120));
+  return true;
+}
+let _pushTimer = null;
+function schedulePush(){
+  if(!IS_ADMIN || IS_DEMO || VIEWING_SHARE) return;
+  ST.poolDirty = true;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(()=>pushPool(true), 1200);   // 連続操作をまとめて1回
+}
+async function pushPool(silent){
+  if(!IS_ADMIN || IS_DEMO || VIEWING_SHARE) return;
+  if(!hasToken()){ POOL={state:'notoken',msg:'配信キーが未設定',at:0}; render(); return; }
+  POOL={state:'sending',msg:'配信しています…',at:0}; renderPoolBox();
+  const payload = poolPayload();
+  try{
+    await ghPutFile(POOL_URL, JSON.stringify(payload,null,1)+'\n',
+      `予想データ更新（${payload.players.length}人${payload.published?'・公開':'・受付中'}）`);
+    ST.poolAt = payload.updatedAt; ST.poolDirty = false; save();
+    POOL={state:'ok',msg:`配信しました（${fmtTs(payload.updatedAt)}）`,at:Date.now()};
+    if(!silent) toast('みんなに配信しました');
+  }catch(e){
+    POOL={state:'fail',msg:String(e.message||e),at:0};
+    if(!silent) toast('配信に失敗しました');
+  }
+  render();
+}
+async function fetchPool(silent){
+  if(IS_DEMO || VIEWING_SHARE) return;
+  try{
+    const res = await fetch(POOL_URL + '?t=' + Math.floor(Date.now()/30000), {cache:'no-store'});
+    if(!res.ok) return;                       // まだ配信されていない
+    const d = await res.json();
+    if(!d || typeof d!=='object') return;
+    const remoteAt = d.updatedAt || 0;
+    if(IS_ADMIN){
+      // 集計担当：手元に未配信の変更があるときは上書きしない
+      if(ST.poolDirty) return;
+      if(remoteAt <= (ST.poolAt||0)) return;
+    } else {
+      if(remoteAt <= (ST.poolAt||0) && ST.players.length) return;
+    }
+    applyPool(d); save(); render(true);
+    if(!silent) toast('最新のデータを取り込みました');
+  }catch(e){ /* 取れなくても手元の表示のままにする */ }
+}
+function renderPoolBox(){
+  const host = document.getElementById('pool-box'); if(!host) return;
+  const m = {
+    idle:    ['', ''],
+    notoken: ['ng',  '配信キーがまだ設定されていません。下の欄に貼ると、みんなの画面に自動で届くようになります。'],
+    sending: ['',    '配信しています…'],
+    ok:      ['ok',  POOL.msg],
+    fail:    ['ng',  '配信できませんでした：'+POOL.msg]
+  }[POOL.state] || ['',''];
+  host.innerHTML =
+    (!hasToken()
+      ? `<div class="vres ng"><b>まだ誰にも届いていません</b><br>
+           いまは大嶺さんの端末の中だけにデータがあります。<br>
+           下に配信キーを貼ると、以後は自動でみんなに届きます。</div>`
+      : `<div class="vres ${m[0]||'ok'}">${esc(m[1]||'配信の準備ができています')}
+           ${ST.poolDirty?'<br><b>未配信の変更があります</b>':''}</div>`)
+    + `<label class="lb">配信キー（GitHubトークン）</label>
+       <input id="tok-input" type="password" placeholder="${hasToken()?'設定ずみ（変えるときだけ入力）':'github_pat_… を貼り付け'}">
+       <div class="btnrow" style="margin-top:8px">
+         <button class="btn" onclick="saveToken()">キーを保存</button>
+         <button class="btn pri" onclick="pushPool(false)" ${hasToken()?'':'disabled'}>今すぐ配信</button>
+         ${hasToken()?`<button class="btn dan" onclick="clearToken()">キーを削除</button>`:''}
+       </div>
+       <p class="muted" style="margin:8px 0 0">キーはこの端末のブラウザにだけ保存されます（公開ページには入りません）。</p>`;
+}
+function saveToken(){
+  if(!canEdit('配信キーを設定')) return;
+  const el = document.getElementById('tok-input');
+  const v = (el.value||'').trim();
+  if(!v){ toast('キーが空です'); return; }
+  localStorage.setItem(LS_TOKEN, v);
+  el.value='';
+  toast('配信キーを保存しました');
+  pushPool(false);
+}
+function clearToken(){
+  if(!confirm('配信キーを削除しますか？（以後、自動配信されなくなります）')) return;
+  localStorage.removeItem(LS_TOKEN); POOL={state:'notoken',msg:'',at:0}; render();
+}
+
+/* ============================================================
    集計の整合性チェック（対戦表と勝ち数がズレていないか）
    ============================================================ */
 function bracketDerived(){
@@ -1595,6 +1734,7 @@ function importSave(){
   document.getElementById('imp-name').value='';
   document.getElementById('imp-result').innerHTML='';
   document.getElementById('imp-save').disabled=true;
+  schedulePush();
   toast(`${_pendingImport.name} さんを登録しました`);
   _pendingImport=null; render();
 }
@@ -1606,13 +1746,13 @@ function saveDeadline(){
   if(!canEdit('締切を変更')) return;
   const v = (document.getElementById('deadline-input').value||'').trim();
   ST.deadline = v || DEFAULT_DEADLINE;
-  save(); render(); toast('締切を設定しました');
+  save(); schedulePush(); render(); toast('締切を設定しました');
 }
 function saveRoster(){
   if(!canEdit('参加者を登録')) return;
   const t = (document.getElementById('roster-text').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
   ST.roster = [...new Set(t)];
-  save(); render(); toast(`参加者 ${ST.roster.length}人 を登録しました`);
+  save(); schedulePush(); render(); toast(`参加者 ${ST.roster.length}人 を登録しました`);
 }
 function doPublish(){
   if(!canEdit('公開')) return;
@@ -1621,11 +1761,11 @@ function doPublish(){
     if(!confirm(`まだ ${s.yet.length}人 出していません。\n（${s.yet.join('・')}）\n\nこのまま公開しますか？`)) return;
   } else if(!confirm(`全員の予想を公開します。\n公開すると、みんなが予想と順位を見られるようになります。\n\nよろしいですか？`)) return;
   ST.published = true; ST.publishedAt = Date.now();
-  save(); render(); go('rank'); toast('公開しました');
+  save(); pushPool(false); render(); go('rank'); toast('公開しました');
 }
 function unPublish(){
   if(!confirm('公開を取り消して、受付中の状態に戻しますか？\n（すでにリンクを見た人には見えてしまっています）')) return;
-  ST.published = false; save(); render(); toast('受付中に戻しました');
+  ST.published = false; save(); pushPool(true); render(); toast('受付中に戻しました');
 }
 function renderAdminPlayers(){
   const s = submitState();
@@ -1663,7 +1803,7 @@ function renderAdminPlayers(){
 }
 function delPlayer(i){
   if(!confirm(`${ST.players[i].name} さんの予想を削除しますか？`)) return;
-  ST.players.splice(i,1); save(); render(); toast('削除しました');
+  ST.players.splice(i,1); save(); schedulePush(); render(); toast('削除しました');
 }
 
 /* ============================================================
@@ -2110,14 +2250,14 @@ function updateDemoBar(){
 
   // 試合結果の自動取り込み：起動直後・10分ごと・画面に戻ってきた時
   if(!IS_DEMO && !VIEWING_SHARE){
-    setTimeout(()=>fetchGames(true), 600);
-    setInterval(()=>{ if(!document.hidden) fetchGames(true); }, 10*60*1000);
+    setTimeout(()=>{ fetchPool(true); fetchGames(true); }, 600);
+    setInterval(()=>{ if(!document.hidden){ fetchPool(true); fetchGames(true); } }, 3*60*1000);
   }
   // 画面に戻ってきた時：アニメ途中で止まっていても必ず正しい状態に戻す
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden) return;
     render();
-    if(!IS_DEMO && !VIEWING_SHARE && Date.now()-AUTO.at > 5*60*1000) fetchGames(true);
+    if(!IS_DEMO && !VIEWING_SHARE){ fetchPool(true); if(Date.now()-AUTO.at > 5*60*1000) fetchGames(true); }
   });
 
   // 題字を1文字ずつに割って、手書きらしい傾きをつける
