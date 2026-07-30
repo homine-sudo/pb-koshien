@@ -1,0 +1,36 @@
+name: 試合結果の取得
+
+on:
+  schedule:
+    - cron: '0,30 23 * * *'
+    - cron: '0,30 0-14 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-games
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: fetch
+        run: node scripts/fetch_games.js
+      - name: commit
+        run: |
+          git config user.name  "koshien-bot"
+          git config user.email "koshien-bot@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data/games.json)" ]; then
+            git add data/games.json
+            git commit -m "update games"
+            git push
+          else
+            echo "no change"
+          fi
