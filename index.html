@@ -147,32 +147,6 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .toast.on{opacity:1}
 .hide{display:none !important}
 
-/* ========== 直線コース ========== */
-.course{background:linear-gradient(180deg,#33603C,#2A5233);border-radius:10px;padding:9px 9px 7px}
-.chead{display:flex;justify-content:space-between;color:rgba(255,255,255,.72);font-size:9.5px;letter-spacing:.1em;margin-bottom:5px;padding:0 1px}
-.clane{display:flex;align-items:center;gap:5px;margin-bottom:4px;cursor:pointer}
-.clane:last-child{margin-bottom:0}
-.cnum{width:17px;height:17px;border-radius:3px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.35);flex:none}
-.cnm{width:54px;font-size:10.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
-.ctrack{
-  position:relative;flex:1;height:23px;border-radius:4px;overflow:hidden;
-  background:repeating-linear-gradient(90deg,#4E8055 0 13px,#46764C 13px 26px);
-  box-shadow:inset 0 1px 2px rgba(0,0,0,.2);
-}
-.ctrack::after{
-  content:'';position:absolute;right:5px;top:0;bottom:0;width:3px;opacity:.92;
-  background:repeating-linear-gradient(180deg,#fff 0 4px,#D42A2A 4px 8px);
-}
-.chorse{
-  position:absolute;top:50%;margin-top:-9px;font-size:17px;line-height:1;
-  transition:left 1.05s cubic-bezier(.24,.66,.28,1);
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.45));
-}
-.chorse i{display:inline-block;font-style:normal;animation:cgallop .42s ease-in-out infinite alternate}
-@keyframes cgallop{from{transform:scaleX(-1) translateY(1px)}to{transform:scaleX(-1) translateY(-1.5px)}}
-.cpos{width:30px;text-align:right;font-size:11px;font-weight:800;color:rgba(255,255,255,.85);flex:none}
-.cpos.p1{color:var(--gold)}
-.ccap{display:flex;justify-content:space-between;color:rgba(255,255,255,.8);font-size:10px;margin-top:7px;padding:0 1px}
 /* ========== 対戦表 ========== */
 .br-round{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
 .br-round>summary{
@@ -200,19 +174,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .br-slot.lose{color:var(--ink3);background:#F7F8FA;text-decoration:line-through;text-decoration-color:var(--line2)}
 .br-slot.lose em{color:var(--line2)}
 
-/* 着順表 */
-.chaku{margin-top:10px}
-.crow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line)}
-.crow:last-child{border-bottom:0}
-.crow .cno{width:22px;text-align:center;font-size:12.5px;font-weight:800;color:var(--ink3)}
-.crow.c1 .cno{color:var(--gold)}
-.wk{width:18px;height:18px;border-radius:3px;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.3);flex:none}
-.crow .cnm{flex:1;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.crow .cpt{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy)}
-.crow .cmv{font-size:10.5px;font-weight:700;margin-left:3px}
-.crow .cmv.u{color:var(--gold)} .crow .cmv.d{color:var(--ink3)}
-.prize{font-size:10.5px;background:#FBF1D8;color:#8A6A18;border:1px solid #E8D6A4;border-radius:8px;padding:0 5px;font-weight:700;flex:none}
-.race-note{font-size:11px;color:var(--ink3);margin-top:8px;line-height:1.6}
+.prize{font-size:10.5px;background:#FBF1D8;color:#8A6A18;border:1px solid #E8D6A4;border-radius:8px;padding:0 5px;font-weight:700;flex:none;margin-left:5px}
 
 /* ========== 予想マトリクス（エクセル版式） ========== */
 .pm-wrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px;-webkit-overflow-scrolling:touch}
@@ -223,8 +185,6 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   font-size:10.5px;font-weight:700;padding:7px 4px;text-align:center;border-bottom:1px solid var(--line2);
 }
 .pm thead th.pm-p{max-width:96px;overflow:hidden;text-overflow:ellipsis;background:#E6ECF4}
-.pm-wk{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:2px;
-  font-size:9px;font-weight:800;margin-right:3px;border:1px solid rgba(0,0,0,.3);vertical-align:-2px}
 .pm thead tr.sub th{top:29px;z-index:3;font-size:9.5px;padding:3px 2px;background:#F3F6FA;color:var(--ink2);font-weight:700}
 .pm thead tr.sub th.pm-t{z-index:4;background:#F3F6FA}
 .pm thead th.pm-sub.yo{color:#2C5282}
@@ -403,7 +363,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 <canvas id="confetti"></canvas>
 <div id="champ" onclick="closeChamp()">
   <div class="box">
-    <div class="cap">1 着</div>
+    <div class="cap">優 勝</div>
     <div class="who" id="champ-who"></div>
     <div class="pt" id="champ-pt"></div>
     <div class="tm" id="champ-tm"></div>
@@ -423,9 +383,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 <!-- ============ 順位 ============ -->
 <div class="wrap" id="pg-rank">
   <div class="card">
-    <div class="card-t">レース経過 <span class="sub" id="rank-sub"></span></div>
-    <div class="chips" id="rank-chips"></div>
-    <div id="race-body"></div>
+    <div class="card-t">現在の順位 <span class="sub" id="rank-sub"></span></div>
     <div id="rank-list"></div>
   </div>
   <div class="card" id="card-progress">
@@ -454,7 +412,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 <!-- ============ 予想一覧 ============ -->
 <div class="wrap hide" id="pg-picks">
   <div class="card">
-    <div class="card-t">馬柱（みんなの予想） <span class="sub">列＝着順 ／ 横スクロール</span></div>
+    <div class="card-t">みんなの予想 <span class="sub">列＝順位順 ／ 横スクロール</span></div>
     <div id="picks-body"></div>
   </div>
 </div>
@@ -527,7 +485,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 </div>
 
 <div class="nav" id="nav">
-  <button data-pg="rank" class="on" onclick="go('rank')"><span class="ic">🏇</span>レース</button>
+  <button data-pg="rank" class="on" onclick="go('rank')"><span class="ic">🏆</span>順位</button>
   <button data-pg="bracket" onclick="go('bracket')"><span class="ic">🗂</span>対戦表</button>
   <button data-pg="teams" onclick="go('teams')"><span class="ic">🏫</span>出場校</button>
   <button data-pg="picks" onclick="go('picks')"><span class="ic">📋</span>予想</button>
@@ -697,110 +655,8 @@ function render(anim){
 const PRIZE_RANKS = [8,10];                       // ★ここを変えれば飛び賞の順位を変えられる
 const isPrize = r => PRIZE_RANKS.includes(r);
 
-/* ---- 競馬トラック ---- */
-let _rankView = 'race';                            // race | list
-let _raceKey = '';                                 // 出走メンバーが変わったら組み直す
-const TOTAL_GAMES = 48;                            // 49校＝全48試合＝トラック1周
+const TOTAL_GAMES = 48;                            // 49校＝全48試合
 
-/* 枠色（JRA準拠） */
-const WAKU = [
-  {bg:'#FFFFFF',fg:'#111'},{bg:'#1C1C1C',fg:'#fff'},{bg:'#D42A2A',fg:'#fff'},{bg:'#2D5FBF',fg:'#fff'},
-  {bg:'#F2CE22',fg:'#111'},{bg:'#2E9E52',fg:'#fff'},{bg:'#E8802A',fg:'#111'},{bg:'#F2A3C0',fg:'#111'}
-];
-function wakuMap(n){                                // 馬番 → 枠番
-  const frames = Math.min(8, n);
-  const counts = new Array(frames).fill(Math.floor(n/frames));
-  let rem = n % frames;
-  for(let i=frames-1; rem>0; i--, rem--) counts[i]++;
-  const map=[]; let u=1;
-  counts.forEach((c,fi)=>{ for(let k=0;k<c;k++) map[u++]=fi+1; });
-  return map;
-}
-function umabanOf(){                                // 馬番＝登録順で固定
-  const m={}; ST.players.forEach((p,i)=>m[p.name]=i+1); return m;
-}
-function wakuColor(name){
-  const um = umabanOf(), map = wakuMap(ST.players.length);
-  return WAKU[(map[um[name]]||1)-1];
-}
-function setRankView(v){ _rankView=v; renderRank(); }
-
-/* 進行度 t（0〜1）＝ 大会消化率 × 首位との比^3 。先頭は消化率の位置＝全部終わるとゴール */
-function laneT(r, lead, progress){
-  if(lead<=0) return 0;
-  return progress * Math.pow(r.pt/lead, 3);
-}
-function renderRace(rows, anim){
-  const host = document.getElementById('race-body');
-  if(_rankView!=='race'){ host.innerHTML=''; _raceKey=''; return; }
-  const um = umabanOf(), map = wakuMap(rows.length);
-  const byUma = rows.slice().sort((a,b)=> um[a.name]-um[b.name]);   // レーンは馬番順で固定
-  const key = byUma.map(r=>r.name).join('|');
-
-  if(_raceKey!==key){                                  // 出走表を組む（1回だけ）
-    _raceKey = key;
-    host.innerHTML = `
-      <div class="course">
-        <div class="chead"><span>スタート</span><span>ゴール ▶</span></div>
-        ${byUma.map(r=>{
-          const wk = WAKU[(map[um[r.name]]||1)-1];
-          return `<div class="clane" data-nm="${esc(r.name)}" onclick="openPlayerByName('${esc(r.name)}')">
-            <span class="cnum" style="background:${wk.bg};color:${wk.fg}">${um[r.name]}</span>
-            <span class="cnm">${esc(r.name)}</span>
-            <span class="ctrack"><span class="chorse" style="left:0%"><i>🐎</i></span></span>
-            <span class="cpos"></span>
-          </div>`;
-        }).join('')}
-        <div class="ccap"><span id="course-lap"></span><span id="course-lead"></span></div>
-      </div>
-      <div class="chaku" id="chaku"></div>
-      <div class="race-note">コース＝全${TOTAL_GAMES}試合。先頭がゴール板に届いたら決着です。<br>
-        位置はざっくりの着順（正確なポイントは下の着順表と「予想」タブで）。飛び賞は ${PRIZE_RANKS.join('位 と ')}位。</div>`;
-  }
-
-  const progress = Math.min(1, totalGames()/TOTAL_GAMES);
-  const lead = rows[0].pt;
-  const set = ()=>{
-    rows.forEach(r=>{
-      const el = host.querySelector(`.clane[data-nm="${cssq(r.name)}"]`);
-      if(!el) return;
-      const x = 2 + laneT(r, lead, progress) * 88;                  // 2%〜90%（ゴール板の手前）
-      el.querySelector('.chorse').style.left = x+'%';
-      const pos = el.querySelector('.cpos');
-      pos.textContent = r.rank + '着';
-      pos.classList.toggle('p1', r.rank===1);
-    });
-  };
-  if(anim){ let d=false; const go=()=>{ if(d)return; d=true; set(); };
-            requestAnimationFrame(()=>requestAnimationFrame(go)); setTimeout(go,70); }
-  else set();
-
-  const left = TOTAL_GAMES - totalGames();
-  document.getElementById('course-lap').textContent =
-    left>0 ? `残り ${left} 試合（${Math.round(progress*100)}% 消化）` : '全レース終了';
-  document.getElementById('course-lead').textContent =
-    rows.length ? `先頭 ${rows[0].name} ${rows[0].pt.toLocaleString()}P` : '';
-  renderChaku(rows);
-}
-function renderChaku(rows){
-  const host = document.getElementById('chaku'); if(!host) return;
-  const um = umabanOf(), map = wakuMap(rows.length);
-  host.innerHTML = rows.map(r=>{
-    const wk = WAKU[(map[um[r.name]]||1)-1];
-    const pv = _prevRank[r.name];
-    const mv = (pv!=null && pv!==r.rank)
-      ? (pv>r.rank?`<span class="cmv u">▲${pv-r.rank}</span>`:`<span class="cmv d">▼${r.rank-pv}</span>`) : '';
-    return `<div class="crow ${r.rank===1?'c1':''}" onclick="openPlayerByName('${esc(r.name)}')">
-      <span class="cno">${r.rank}</span>
-      <span class="wk" style="background:${wk.bg};color:${wk.fg}">${um[r.name]}</span>
-      <span class="cnm">${esc(r.name)}${mv}</span>
-      ${isPrize(r.rank)?'<span class="prize">飛び賞</span>':''}
-      <span class="cpt">${r.pt.toLocaleString()}</span>
-      <span class="chev">›</span>
-    </div>`;
-  }).join('');
-}
-function cssq(s){ return String(s).replace(/["\\]/g,'\\$&'); }
 function openPlayerByName(nm){
   const i = ranking().findIndex(r=>r.name===nm);
   if(i>=0) openPlayer(i);
@@ -813,16 +669,11 @@ function renderRank(anim){
   const rows = ranking();
   document.getElementById('rank-sub').textContent =
     ST.players.length ? `${ST.players.length}人 ・ ${totalGames()}試合終了` : '';
-  document.getElementById('rank-chips').innerHTML = ST.players.length ? [['race','🏇 レース'],['list','📊 着順表（詳細）']]
-    .map(([k,l])=>`<button class="chip ${_rankView===k?'on':''}" onclick="setRankView('${k}')">${l}</button>`).join('') : '';
   if(!rows.length){
-    document.getElementById('race-body').innerHTML = '';
     host.innerHTML = `<div class="empty">まだ予想が登録されていません<br>
       <button class="btn" style="margin-top:12px" onclick="startDemo()">▶ デモを見る</button></div>`;
     return;
   }
-  renderRace(rows, anim);
-  if(_rankView==='race'){ host.innerHTML=''; rows.forEach(r=>{ _prevPt[r.name]=r.pt; _prevRank[r.name]=r.rank; }); return; }
   // アニメ前の位置を記録
   const before = {};
   if(anim) host.querySelectorAll('.rk').forEach(el=>{ before[el.dataset.nm] = el.getBoundingClientRect().top; });
@@ -992,13 +843,9 @@ function renderPicks(){
   if(_pickOnlyAlive) list = list.filter(x=>!ST.out[x.i]);
   if(_pickSort==='gap') list = list.slice().sort((a,b)=> b.gap-a.gap || a.i-b.i);
 
-  const um = umabanOf(), wmap = wakuMap(rows.length);
   const span = _pickMode==='both' ? 2 : 1;
-  const th1 = rows.map(r=>{
-    const wk = WAKU[(wmap[um[r.name]]||1)-1];
-    return `<th class="pm-p" colspan="${span}" title="${esc(r.name)}">
-      <span class="pm-wk" style="background:${wk.bg};color:${wk.fg}">${um[r.name]}</span>${esc(r.name)}</th>`;
-  }).join('');
+  const th1 = rows.map(r=>
+    `<th class="pm-p" colspan="${span}" title="${esc(r.name)}">${esc(r.name)}</th>`).join('');
   const th2 = _pickMode==='both'
     ? `<tr class="sub"><th class="pm-t"></th><th class="pm-w"></th><th class="pm-g"></th>` +
       rows.map(()=>`<th class="pm-sub yo">予想</th><th class="pm-sub ka">獲得</th>`).join('') + `</tr>`
@@ -1020,7 +867,7 @@ function renderPicks(){
   }).join('');
 
   const totals = rows.map(r=>`<td class="pm-n tot" colspan="${span}"><b>${r.pt.toLocaleString()}</b></td>`).join('');
-  const ranks  = rows.map(r=>`<td class="pm-n rnk" colspan="${span}">${r.rank}着${isPrize(r.rank)?'🎁':''}</td>`).join('');
+  const ranks  = rows.map(r=>`<td class="pm-n rnk" colspan="${span}">${r.rank}位${isPrize(r.rank)?'🎁':''}</td>`).join('');
 
   // 差がつく校 上位3つ（勝ち残りのみ）
   const hot = list.filter(x=>!ST.out[x.i]).slice().sort((a,b)=>b.gap-a.gap).slice(0,3);
@@ -1034,14 +881,14 @@ function renderPicks(){
         <tbody>${body}</tbody>
         <tfoot>
           <tr><th class="pm-t">獲得P合計</th><td class="pm-w"></td><td class="pm-g"></td>${totals}</tr>
-          <tr><th class="pm-t">着順</th><td class="pm-w"></td><td class="pm-g"></td>${ranks}</tr>
+          <tr><th class="pm-t">順位</th><td class="pm-w"></td><td class="pm-g"></td>${ranks}</tr>
         </tfoot>
       </table>
     </div>
     ${heatLegend()}
     <div class="muted" style="margin-top:8px">
       <b class="yo-k">予想</b>＝その校に振った点／<b class="ka-k">獲得</b>＝予想×勝利数。金枠＝いちばん高く買っている人。<br>
-      <b>「差」</b>＝いちばん高い人と低い人の開き。<b>差が小さい校は、勝っても全員に同じだけ入るので着順は動きません。</b>
+      <b>「差」</b>＝いちばん高い人と低い人の開き。<b>差が小さい校は、勝っても全員に同じだけ入るので順位は動きません。</b>
     </div>`;
 
   // 2段ヘッダーの下段を、上段の実高さに合わせて貼り付ける
@@ -1111,8 +958,8 @@ function renderBracket(){
     const nm = `${TEAMS[idx].name}<em>${TEAMS[idx].pref}</em>`;
     return (IS_ADMIN && !VIEWING_SHARE)
       ? `<button class="br-slot ${isW?'win':''}${isL?' lose':''}" onclick="pickWinner(${mi},'${side}')"
-           oncontextmenu="event.preventDefault();openMatchPick(${mi},'${side}')">${isW?'<b>🏇</b>':''}${nm}</button>`
-      : `<span class="br-slot ${isW?'win':''}${isL?' lose':''}">${isW?'<b>🏇</b>':''}${nm}</span>`;
+           oncontextmenu="event.preventDefault();openMatchPick(${mi},'${side}')">${isW?'<b>✓</b>':''}${nm}</button>`
+      : `<span class="br-slot ${isW?'win':''}${isL?' lose':''}">${isW?'<b>✓</b>':''}${nm}</span>`;
   };
   host.innerHTML = ROUNDS.map((rd,ri)=>{
     const idxs = ST.matches.map((m,i)=>({m,i})).filter(x=>x.m.r===ri).map(x=>x.i);
