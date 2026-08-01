@@ -343,6 +343,45 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .pm tfoot td.tot b{color:var(--navy);font-size:13px}
 .pm tfoot td.rnk{color:var(--ink2);font-size:11px}
 
+/* ========== 「自分は誰か」＝見ている人ごとの表示 ========== */
+.mebar{
+  background:#fff;border:1px solid var(--line);border-left:3px solid var(--navy);
+  border-radius:8px;padding:10px 12px;margin-bottom:10px;
+}
+.mebar-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
+.mebar select{
+  font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line2);
+  border-radius:6px;background:#fff;color:var(--ink);max-width:170px;
+}
+.mebar .me-nm{font-weight:800;color:var(--navy);font-size:14px}
+.mebar .me-sw{
+  background:none;border:none;color:var(--ink3);font-size:11px;text-decoration:underline;
+  cursor:pointer;padding:2px 0;
+}
+.me-stat{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.me-stat div{font-size:10.5px;color:var(--ink3);letter-spacing:.04em}
+.me-stat b{display:block;font-size:19px;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.25}
+.me-stat b.sm{font-size:15px}
+.me-stat b.up{color:var(--green)}
+.me-code{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.me-code input{
+  font:inherit;font-size:15px;width:76px;text-align:center;letter-spacing:.18em;
+  padding:5px 6px;border:1px solid var(--line2);border-radius:6px;font-variant-numeric:tabular-nums;
+}
+.me-hint{font-size:10.5px;color:var(--ink3);margin-top:5px;line-height:1.6}
+.rk.me{box-shadow:inset 0 0 0 2px var(--navy)}
+.rk-you{
+  display:inline-block;background:var(--navy);color:#fff;font-size:9.5px;font-weight:700;
+  border-radius:9px;padding:1px 7px;margin-left:6px;vertical-align:1px;letter-spacing:.06em;
+}
+.pm thead th.pm-p.mecol{background:#D7E4F8;color:var(--navy);border-right:1px solid var(--navy2)}
+.pm thead tr.sub th.mecol{background:#E7EEFA}
+.pm td.pm-n.mecol{background:#F0F5FF}
+.pm td.pm-n.ka.mecol{background:#EAF1FE}
+.pm tfoot td.mecol{background:#E7EEFA}
+.pm .mecol{border-left:2px solid var(--navy2)}
+.pm .mecol.edge{border-right:2px solid var(--navy2)}
+
 /* ================= 演出 ================= */
 /* オープニング */
 #intro{
@@ -495,6 +534,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 <div class="wrap" id="pg-rank">
   <div id="upd-bar"></div>
   <div id="auto-bar"></div>
+  <div id="me-bar"></div>
   <div class="card">
     <div class="card-t">現在の順位 <span class="sub" id="rank-sub"></span></div>
     <div id="rank-list"></div>
@@ -525,7 +565,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 <!-- ============ 予想一覧 ============ -->
 <div class="wrap hide" id="pg-picks">
   <div class="card">
-    <div class="card-t">みんなの予想 <span class="sub">列＝順位順 ／ 横スクロール</span></div>
+    <div class="card-t">みんなの予想 <span class="sub">自分が左端 ／ あとは順位順 ／ 横スクロール</span></div>
     <div id="picks-body"></div>
   </div>
 </div>
@@ -628,7 +668,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-07-31';
+const APP_VERSION = '2026-08-01';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -687,6 +727,8 @@ const ALIAS = {
 const LS_KEY = 'pb_koshien_2026s';
 const LS_ADMIN = 'pb_koshien_admin';
 const LS_PASS = 'pb_koshien_pass';
+const LS_ME = 'pb_koshien_me';        // 「自分は誰か」＝この端末で見ている人（共有データには入れない）
+const LS_MEOK = 'pb_koshien_me_ok';   // 確認コードを通した名前（公開前に自分の予想を見せる判定）
 function passHash(s){
   let h = 5381;
   for(const c of String(s)) h = ((h*33) ^ c.charCodeAt(0)) >>> 0;
@@ -814,7 +856,7 @@ function go(pg){
   render();
 }
 function render(anim){
-  renderAutoBar();
+  renderAutoBar(); renderMeBar();
   renderRank(anim); renderProgress(); renderTeams(); renderPicks(); renderBracket();
   if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); renderIntegrity(); renderPoolBox(); }
 }
@@ -900,6 +942,137 @@ function renderWaiting(){
   startCountdown();
 }
 
+/* ============================================================
+   「自分は誰か」— 端末ごとに1人選び、その人目線で見せる
+   ・選んだ名前はこの端末のブラウザにだけ保存する（共有データには入れない）
+   ・公開前に自分の予想を見せるのは「確認コードが合った人」だけ（なりすまし防止）
+   ============================================================ */
+let ME = '';
+try{ ME = localStorage.getItem(LS_ME) || ''; }catch(e){ ME = ''; }
+
+function meRosterNames(){
+  const a = (ST && ST.roster || []).filter(Boolean);
+  const b = (ST && ST.players || []).map(p=>p.name);
+  return [...new Set([...a, ...b])];
+}
+function setMe(n){
+  ME = n || '';
+  try{ ME ? localStorage.setItem(LS_ME, ME) : localStorage.removeItem(LS_ME); }catch(e){}
+  render();
+}
+function clearMe(){ setMe(''); }
+function meVerified(){
+  if(!ME) return false;
+  try{ return localStorage.getItem(LS_MEOK) === ME; }catch(e){ return false; }
+}
+function myPlayer(){ return (ST && ST.players || []).find(p=>p.name===ME) || null; }
+function openMe(){ if(ME) openPlayerByName(ME); }
+
+function verifyMe(){
+  const el = document.getElementById('me-code');
+  const v = (el && el.value || '').replace(/[^\d]/g,'');
+  const p = myPlayer();
+  if(!p){ toast('まだ予想が登録されていません'); return; }
+  if(v.length !== 4){ toast('4桁の数字を入れてください'); return; }
+  if(pickCode(p.picks||[]) !== v){ toast('コードが違います'); return; }
+  try{ localStorage.setItem(LS_MEOK, ME); }catch(e){}
+  toast('確認できました');
+  render();
+}
+/* 自分の予想（自分の分だけ。他人の予想は出さない） */
+function openMyPicks(){
+  const p = myPlayer();
+  if(!p){ toast('まだ予想が登録されていません'); return; }
+  if(!isPublished() && !meVerified()){ toast('確認コードを入れてください'); return; }
+  const det = (p.picks||[]).map((v,k)=>({v,k,w:ST.wins[k]||0,pt:v*(ST.wins[k]||0)}))
+                           .sort((a,b)=> b.v-a.v);
+  const anyWin = det.some(d=>d.w>0);
+  openSheet(`${ME} さんの予想`, `
+    <div class="kv"><span class="k">確認コード</span><span class="v">${pickCode(p.picks||[])}</span></div>
+    ${anyWin?`<div class="kv"><span class="k">獲得ポイント</span><span class="v">${det.reduce((s,d)=>s+d.pt,0).toLocaleString()} P</span></div>`:''}
+    <div style="margin-top:14px"><div class="card-t">配点の高い順</div>
+    <table class="tbl"><tr><th>校</th><th style="text-align:right">配点</th>${anyWin?'<th style="text-align:right">勝</th><th style="text-align:right">P</th>':''}</tr>
+    ${det.map(d=>`<tr><td>${esc(TEAMS[d.k].name)}${ST.out[d.k]?' <span style="color:var(--ink3);font-size:10.5px">敗</span>':''}</td>
+      <td class="n">${d.v}</td>${anyWin?`<td class="n">${d.w}</td><td class="n"><b>${d.pt||''}</b></td>`:''}</tr>`).join('')}
+    </table></div>`);
+}
+
+function renderMeBar(){
+  const host = document.getElementById('me-bar');
+  if(!host) return;
+  const names = meRosterNames();
+  if(!names.length){ host.innerHTML=''; return; }
+
+  /* まだ選んでいない */
+  if(!ME || !names.includes(ME)){
+    host.innerHTML = `<div class="mebar"><div class="mebar-row">
+      <span>あなたは誰ですか？</span>
+      <select onchange="setMe(this.value)">
+        <option value="">選んでください</option>
+        ${names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}
+      </select></div>
+      <div class="me-hint">選ぶと、順位表であなたの行が目立つようになり、みんなの予想の表でもあなたの列が左端に来ます。この端末にだけ覚えます。</div>
+    </div>`;
+    return;
+  }
+
+  const head = `<div class="mebar-row">
+      <span class="me-nm">${esc(ME)}</span><span>さんとして見ています</span>
+      <button class="me-sw" onclick="clearMe()">別の人にする</button>
+    </div>`;
+  const p = myPlayer();
+
+  /* 公開前 */
+  if(!isPublished()){
+    let body;
+    if(!p){
+      body = `<div class="me-hint">まだあなたの予想が登録されていません。集計担当（大嶺さん）に提出してください。</div>`;
+    }else if(meVerified()){
+      body = `<div class="me-code"><button class="btn sm" onclick="openMyPicks()">自分の予想を見る</button></div>
+        <div class="me-hint">みんなの予想と順位は、全員そろって公開されてから見られます。</div>`;
+    }else{
+      body = `<div class="me-code">
+          <input id="me-code" inputmode="numeric" maxlength="4" placeholder="0000">
+          <button class="btn sm" onclick="verifyMe()">自分の予想を見る</button>
+        </div>
+        <div class="me-hint">提出したときに出た<b>4桁の確認コード</b>を入れると、自分の予想だけ先に見られます。他の人の予想は公開まで見られません。</div>`;
+    }
+    host.innerHTML = `<div class="mebar">${head}${body}</div>`;
+    return;
+  }
+
+  /* 公開後 */
+  const rows = ranking();
+  const i = rows.findIndex(r=>r.name===ME);
+  if(i < 0){
+    host.innerHTML = `<div class="mebar">${head}
+      <div class="me-hint">あなたの予想が見つかりません。名前の表記が違うかもしれません。</div></div>`;
+    return;
+  }
+  /* まだ1試合も終わっていない＝全員0Pで並ぶ。順位差を出しても意味がないので予想の確認に寄せる */
+  if(totalGames() === 0){
+    host.innerHTML = `<div class="mebar">${head}
+      <div class="me-hint">まだ試合が始まっていません。<b>8/5 開幕</b>（組み合わせ抽選は 8/1 17時）。<br>
+        試合が進むと、ここにあなたの順位と「1位まであと何P」が出ます。</div>
+      <div class="me-code"><button class="btn sm" onclick="openMyPicks()">自分の予想を見る</button></div>
+    </div>`;
+    return;
+  }
+  const me = rows[i], up = rows[i-1], dn = rows[i+1];
+  const gapUp = up ? up.pt - me.pt : null;
+  const lead  = (!up && dn) ? me.pt - dn.pt : null;
+  host.innerHTML = `<div class="mebar">${head}
+    <div class="me-stat">
+      <div>いまの順位<b>${me.rank}<span style="font-size:12px">位</span>${isPrize(me.rank)?' 🎁':''}</b></div>
+      <div>獲得ポイント<b>${me.pt.toLocaleString()}<span style="font-size:12px">P</span></b></div>
+      ${gapUp!=null?`<div>${esc(up.name)}（${up.rank}位）まで<b class="sm">あと ${gapUp.toLocaleString()} P</b></div>`
+                  :`<div>2位との差<b class="sm up">${lead!=null?'+'+lead.toLocaleString()+' P':'—'}</b></div>`}
+      ${(dn && i>0)?`<div>${esc(dn.name)}（${dn.rank}位）が<b class="sm">${(me.pt-dn.pt).toLocaleString()} P差で下</b></div>`:''}
+    </div>
+    <div class="me-code"><button class="btn sm" onclick="openMe()">自分の内訳を見る</button></div>
+  </div>`;
+}
+
 /* ---- 順位（入れ替わりアニメ付き） ---- */
 let _prevPt = {}, _prevRank = {};
 function renderRank(anim){
@@ -924,11 +1097,11 @@ function renderRank(anim){
       ? `<span class="rk-mv u">▲${pv-r.rank}</span>` : `<span class="rk-mv d">▼${r.rank-pv}</span>`) : '';
     const start = anim ? (_prevPt[r.name]||0) : r.pt;
     return `
-    <div class="rk ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''}"
+    <div class="rk ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''}${r.name===ME?' me':''}"
          data-nm="${esc(r.name)}" data-pt="${r.pt}" onclick="openPlayer(${i})">
       <div class="rk-no">${r.rank}</div>
       <div class="rk-b">
-        <div class="rk-nm">${esc(r.name)}${mv}${isPrize(r.rank)?'<span class="prize">飛び賞</span>':''}</div>
+        <div class="rk-nm">${esc(r.name)}${r.name===ME?'<span class="rk-you">あなた</span>':''}${mv}${isPrize(r.rank)?'<span class="prize">飛び賞</span>':''}</div>
         <div class="rk-bar"><i style="width:${anim?Math.round((_prevPt[r.name]||0)/max*100):Math.round(r.pt/max*100)}%"></i></div>
       </div>
       <div class="rk-p"><b>${start.toLocaleString()}</b><span>P</span></div>
@@ -1072,7 +1245,11 @@ function renderPicks(){
     return;
   }
   if(!ST.players.length){ host.innerHTML='<div class="empty">まだ予想が登録されていません</div>'; return; }
-  const rows = ranking();                                   // 列は現在の順位順
+  // 列は順位順。ただし「自分」を選んでいれば、その人だけ左端に寄せる（横スクロールせずに読める）
+  let rows = ranking();
+  const _mi = ME ? rows.findIndex(r=>r.name===ME) : -1;
+  if(_mi > 0) rows = [rows[_mi], ...rows.filter((_,k)=>k!==_mi)];
+  const isMe = r => !!ME && r.name===ME;
   const modes = [['pred','予想'],['pt','獲得P'],['both','両方']];
   const head = `
     <div class="chips">
@@ -1091,20 +1268,21 @@ function renderPicks(){
 
   const span = _pickMode==='both' ? 2 : 1;
   const th1 = rows.map(r=>
-    `<th class="pm-p" colspan="${span}" title="${esc(r.name)}">${esc(r.name)}</th>`).join('');
+    `<th class="pm-p${isMe(r)?' mecol edge':''}" colspan="${span}" title="${esc(r.name)}">${isMe(r)?'★':''}${esc(r.name)}</th>`).join('');
   const th2 = _pickMode==='both'
     ? `<tr class="sub"><th class="pm-t"></th><th class="pm-w"></th><th class="pm-g"></th>` +
-      rows.map(()=>`<th class="pm-sub yo">予想</th><th class="pm-sub ka">獲得</th>`).join('') + `</tr>`
+      rows.map(r=>`<th class="pm-sub yo${isMe(r)?' mecol':''}">予想</th><th class="pm-sub ka${isMe(r)?' mecol edge':''}">獲得</th>`).join('') + `</tr>`
     : '';
   const body = list.map(x=>{
     const w = ST.wins[x.i]||0;
     const tds = rows.map(r=>{
       const v = r.picks[x.i]||0, pt = v*w;
       const hi = (v===x.best && x.best>0) ? ' hi' : '';
-      if(_pickMode==='pred') return `<td class="pm-n${hi}" style="${heatStyle(v)}">${v}</td>`;
-      if(_pickMode==='pt')   return `<td class="pm-n ka">${pt?`<b>${pt}</b>`:'<span class="z">0</span>'}</td>`;
-      return `<td class="pm-n yo${hi}" style="${heatStyle(v)}">${v}</td>`
-           + `<td class="pm-n ka">${pt?`<b>${pt}</b>`:'<span class="z">0</span>'}</td>`;
+      const m = isMe(r) ? ' mecol' : '', me1 = m ? ' mecol edge' : '';
+      if(_pickMode==='pred') return `<td class="pm-n${hi}${me1}" style="${heatStyle(v)}">${v}</td>`;
+      if(_pickMode==='pt')   return `<td class="pm-n ka${me1}">${pt?`<b>${pt}</b>`:'<span class="z">0</span>'}</td>`;
+      return `<td class="pm-n yo${hi}${m}" style="${heatStyle(v)}">${v}</td>`
+           + `<td class="pm-n ka${me1}">${pt?`<b>${pt}</b>`:'<span class="z">0</span>'}</td>`;
     }).join('');
     return `<tr class="${ST.out[x.i]?'out':''}${w?' won':''}${x.gap<=6?' flat':''}">
       <th class="pm-t"><span class="no">${x.t.no}</span>${esc(x.t.name)}<em>${esc(x.t.pref)}</em></th>
@@ -1112,8 +1290,8 @@ function renderPicks(){
       <td class="pm-g" style="${gapStyle(x.gap)}" title="いちばん高い人といちばん低い人の差">${x.gap}</td>${tds}</tr>`;
   }).join('');
 
-  const totals = rows.map(r=>`<td class="pm-n tot" colspan="${span}"><b>${r.pt.toLocaleString()}</b></td>`).join('');
-  const ranks  = rows.map(r=>`<td class="pm-n rnk" colspan="${span}">${r.rank}位${isPrize(r.rank)?'🎁':''}</td>`).join('');
+  const totals = rows.map(r=>`<td class="pm-n tot${isMe(r)?' mecol edge':''}" colspan="${span}"><b>${r.pt.toLocaleString()}</b></td>`).join('');
+  const ranks  = rows.map(r=>`<td class="pm-n rnk${isMe(r)?' mecol edge':''}" colspan="${span}">${r.rank}位${isPrize(r.rank)?'🎁':''}</td>`).join('');
 
   // 差がつく校 上位3つ（勝ち残りのみ）
   const hot = list.filter(x=>!ST.out[x.i]).slice().sort((a,b)=>b.gap-a.gap).slice(0,3);
