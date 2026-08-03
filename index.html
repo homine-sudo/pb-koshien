@@ -269,10 +269,18 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .br-no{width:20px;text-align:center;font-size:10.5px;color:var(--ink3);flex:none;font-variant-numeric:tabular-nums}
 .br-pair{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
 .br-slot{
-  display:block;width:100%;text-align:left;font-size:12.5px;font-weight:600;color:var(--ink);
+  display:flex;align-items:center;width:100%;text-align:left;font-size:12.5px;font-weight:600;color:var(--ink);
   background:#fff;border:1px solid var(--line2);border-radius:6px;padding:6px 9px;min-height:32px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit;
 }
+.br-slot .br-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br-slot .br-pt{
+  flex:0 0 auto;margin-left:8px;font-style:normal;font-size:11.5px;font-weight:800;
+  min-width:28px;text-align:center;padding:2px 6px;border-radius:5px;
+  border:1px solid rgba(0,0,0,.12);font-variant-numeric:tabular-nums;
+}
+.br-slot.lose .br-pt{opacity:.45;text-decoration:none}
+.br-ptleg{font-size:10.5px;color:var(--ink3);padding:0 10px 8px;line-height:1.6}
 .br-slot em{font-style:normal;font-size:10px;color:var(--ink3);margin-left:5px}
 .br-slot.empty{color:var(--ink3);font-weight:400;border-style:dashed;background:#FAFBFC}
 .br-slot.win{background:#EDF6F0;border-color:#9CCDB0;color:#1E5B39;font-weight:800}
@@ -668,7 +676,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-01';
+const APP_VERSION = '2026-08-03';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -1382,6 +1390,9 @@ function renderBracket(){
   const done = ST.matches.filter(m=>m.w!=null).length;
   const set  = ST.matches.filter(m=>m.a!=null&&m.b!=null).length;
   document.getElementById('br-sub').textContent = `${done} / ${TOTAL_GAMES} 試合 終了`;
+  /* 「自分」を選んでいれば、各校に自分がつけた点を出す */
+  const myP = myPlayer();
+  const myPicks = myP && Array.isArray(myP.picks) ? myP.picks : null;
   const cell = (mi, side)=>{
     const m = ST.matches[mi], idx = side==='a'?m.a:m.b;
     const isW = m.w!=null && m.w===idx;
@@ -1391,13 +1402,18 @@ function renderBracket(){
         ? `<button class="br-slot empty" onclick="openMatchPick(${mi},'${side}')">＋ 学校を選ぶ</button>`
         : `<span class="br-slot empty">未定</span>`;
     }
-    const nm = `${TEAMS[idx].name}<em>${TEAMS[idx].pref}</em>`;
+    const pv = myPicks ? (myPicks[idx]||0) : 0;
+    const pt = pv ? `<i class="br-pt" style="${heatStyle(pv)}" title="あなたがつけた点">${pv}</i>` : '';
+    const nm = `<span class="br-nm">${isW?'<b>✓</b>':''}${TEAMS[idx].name}<em>${TEAMS[idx].pref}</em></span>${pt}`;
     return (IS_ADMIN && !VIEWING_SHARE)
       ? `<button class="br-slot ${isW?'win':''}${isL?' lose':''}" onclick="pickWinner(${mi},'${side}')"
-           oncontextmenu="event.preventDefault();openMatchPick(${mi},'${side}')">${isW?'<b>✓</b>':''}${nm}</button>`
-      : `<span class="br-slot ${isW?'win':''}${isL?' lose':''}">${isW?'<b>✓</b>':''}${nm}</span>`;
+           oncontextmenu="event.preventDefault();openMatchPick(${mi},'${side}')">${nm}</button>`
+      : `<span class="br-slot ${isW?'win':''}${isL?' lose':''}">${nm}</span>`;
   };
-  host.innerHTML = ROUNDS.map((rd,ri)=>{
+  const ptLeg = myPicks
+    ? `<div class="br-ptleg">右の数字は <b>${esc(ME)}</b> さんがつけた点。<b>その校が1つ勝つたびに、その点がそのまま入ります。</b></div>`
+    : ((ST.players||[]).length ? `<div class="br-ptleg">「順位」タブで自分の名前を選ぶと、ここに<b>自分がつけた点</b>が出ます。</div>` : '');
+  host.innerHTML = ptLeg + ROUNDS.map((rd,ri)=>{
     const idxs = ST.matches.map((m,i)=>({m,i})).filter(x=>x.m.r===ri).map(x=>x.i);
     const rdone = idxs.filter(i=>ST.matches[i].w!=null).length;
     return `<details class="br-round" ${ri<=1?'open':''}>
