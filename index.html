@@ -291,6 +291,32 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .br-slot.lose{color:var(--ink3);background:#F7F8FA;text-decoration:line-through;text-decoration-color:var(--line2)}
 .br-slot.lose em{color:var(--line2)}
 
+/* ---- トーナメント表（枝分かれ図）----
+   左端に49校を抽選どおりの並びで置き、右へ1回戦→2回戦→3回戦と枝を伸ばす。
+   縦線の位置は「子の中心どうしを結ぶ」ので、シード校（1回戦なし）でもズレない。 */
+.bt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:8px;padding:6px 2px 6px 0}
+.bt{--btc:88px;display:grid;grid-template-columns:116px var(--btc) var(--btc) var(--btc);grid-auto-rows:26px;min-width:380px}
+.bt-t{grid-column:1;display:flex;align-items:center;font-size:11px;color:var(--ink);
+  padding:0 4px;border-bottom:1px solid #EFF2F6;white-space:nowrap;overflow:hidden}
+.bt-t .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.bt-t em{font-style:normal;font-size:9px;color:var(--ink3);margin-left:3px}
+.bt-t i{font-style:normal;font-size:9.5px;font-weight:800;padding:1px 4px;border-radius:4px;
+  margin-left:3px;border:1px solid rgba(0,0,0,.1);flex:none}
+.bt-t.win{font-weight:800;color:#1E5B39;background:#F3F9F5}
+.bt-t.lose{color:var(--ink3);text-decoration:line-through;text-decoration-color:var(--line2)}
+.bt-t.lose i{opacity:.45}
+.bt-m{position:relative}
+.bt-v,.bt-h,.bt-s{position:absolute;background:var(--line2)}
+.bt-v{left:7px;width:2px}
+.bt-h{left:7px;right:3px;height:2px;margin-top:-1px}
+.bt-s{left:0;width:9px;height:2px;margin-top:-1px}
+.bt-m.done .bt-v,.bt-m.done .bt-h,.bt-m.done .bt-s{background:#9CCDB0}
+.bt-lb{position:absolute;left:10px;right:1px;font-size:9.5px;line-height:1.2;color:var(--ink3);
+  transform:translateY(-100%);padding-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt-lb b{color:#1E5B39;font-weight:800;font-size:10.5px}
+.bt-lb u{text-decoration:none;color:var(--ink3);margin-left:3px}
+.bt-leg{font-size:10.5px;color:var(--ink3);padding:6px 2px 0;line-height:1.6}
+
 .prize{font-size:10.5px;background:#FBF1D8;color:#8A6A18;border:1px solid #E8D6A4;border-radius:8px;padding:0 5px;font-weight:700;flex:none;margin-left:5px}
 
 /* ========== 予想マトリクス（エクセル版式） ========== */
@@ -562,6 +588,8 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 <div class="wrap hide" id="pg-bracket">
   <div class="card">
     <div class="card-t">トーナメント表 <span class="sub" id="br-sub"></span></div>
+    <div class="chips" id="br-modes"></div>
+    <div id="br-tree"></div>
     <div id="br-body"></div>
   </div>
 </div>
@@ -1368,10 +1396,16 @@ function matchNoIn(mi){
 }
 /* その行が「いつの第何試合か」。取り込み前は通し番号だけ出す */
 function brWhen(mi){
-  const d = BR_DAY[mi];
-  if(!d || !d.date) return matchNoIn(mi);
-  const p = d.date.split('-');
-  return `<b>${+p[1]}/${+p[2]}</b><i>${d.no?'第'+d.no:''}</i>`;
+  const m = ST.matches[mi];
+  if(!m || !m.d) return matchNoIn(mi);
+  return `<b>${mdOf(m.d)}</b><i>${m.n?'第'+m.n:''}</i>`;
+}
+function mdOf(date){ const p=String(date).split('-'); return `${+p[1]}/${+p[2]}`; }
+/* 日付と第N試合から、対戦表の試合を引く */
+function matchByDay(date, no){
+  ensureMatches();
+  const i = ST.matches.findIndex(m=>m.d===date && m.n===no);
+  return i<0 ? null : {m:ST.matches[i], i};
 }
 /* 勝者を決める（もう一度押すと取り消し） */
 function pickWinner(mi, side){
@@ -1402,6 +1436,12 @@ function renderBracket(){
   const done = ST.matches.filter(m=>m.w!=null).length;
   const set  = ST.matches.filter(m=>m.a!=null&&m.b!=null).length;
   document.getElementById('br-sub').textContent = `${done} / ${TOTAL_GAMES} 試合 終了`;
+  renderBracketTree();
+  if(_brMode==='tree' && btTree()){        // 図を出しているときは一覧を畳む
+    host.innerHTML = (IS_ADMIN && !VIEWING_SHARE)
+      ? `<div class="muted" style="margin-top:10px">勝敗を手で直すときは「☰ 一覧」に切り替えてください。</div>` : '';
+    return;
+  }
   /* 「自分」を選んでいれば、各校に自分がつけた点を出す */
   const myP = myPlayer();
   const myPicks = myP && Array.isArray(myP.picks) ? myP.picks : null;
@@ -1447,6 +1487,103 @@ function renderBracket(){
       <button class="btn dan" onclick="resetBracket()">対戦表を空にする</button>
     </div>` : (set===0 ? `<div class="muted" style="margin-top:10px">組み合わせはまだ入っていません（抽選は8/1 17時）。</div>` : ''));
 }
+
+/* ============================================================
+   トーナメント表（枝分かれ図）
+   抽選で決まった1〜3回戦の枝は data/bracket.json（甲子園球場の公式表を書き写したもの）。
+   準々決勝から先は勝った学校がくじを引くので、枝は引けない。
+   ============================================================ */
+let _brMode = localStorage.getItem('pb_koshien_brmode') || 'tree';
+function setBrMode(m){ _brMode = m; localStorage.setItem('pb_koshien_brmode', m); renderBracket(); }
+
+/* 抽選表から木を組み立てる。各節に「何行ぶんか（rows）」と
+   「枝を出す位置（center・行単位）」を持たせる。シードは1行ぶん。 */
+function btTree(){
+  if(!BRACKET || !Array.isArray(BRACKET.games)) return null;
+  const byKey = {};
+  BRACKET.games.forEach(g=> byKey[g.date+'#'+g.no] = g);
+  let row = 0;
+  const node = side => {
+    if(side.t!=null){ row++; return {kind:'t', name:side.t, idx:findTeam(side.t), start:row, rows:1, center:0.5}; }
+    const g = byKey[side.w];
+    return g ? mk(g) : (row++, {kind:'t', name:'未定', idx:-1, start:row, rows:1, center:0.5});
+  };
+  const mk = g => {
+    const a = node(g.a), b = node(g.b);
+    return {kind:'m', g, a, b, start:a.start, rows:a.rows+b.rows,
+            center:(a.center + a.rows + b.center)/2};
+  };
+  const roots = BRACKET.games.filter(g=>g.r===3).map(mk);
+  return (row===49) ? roots : null;        // 49行にならなければ表が壊れている
+}
+
+function renderBracketTree(){
+  const host = document.getElementById('br-tree');
+  const modes = document.getElementById('br-modes');
+  if(!host || !modes) return;
+  const roots = btTree();
+  if(!roots){ modes.innerHTML=''; host.innerHTML=''; return; }
+
+  modes.innerHTML = [['tree','🗂 枝分かれ図'],['list','☰ 一覧']]
+    .map(([k,l])=>`<button class="chip ${_brMode===k?'on':''}" onclick="setBrMode('${k}')">${l}</button>`).join('');
+  if(_brMode!=='tree'){ host.innerHTML=''; return; }
+
+  const myP = myPlayer();
+  const myPicks = myP && Array.isArray(myP.picks) ? myP.picks : null;
+  const cells = [];
+
+  /* 学校（左端の列） */
+  const team = n => {
+    const i = n.idx, t = i>=0 ? TEAMS[i] : null;
+    const w = i>=0 && ST.out[i];
+    const won = i>=0 && (ST.wins[i]||0)>0;
+    const pv = (myPicks && i>=0) ? (myPicks[i]||0) : 0;
+    cells.push(`<div class="bt-t ${w?'lose':(won?'win':'')}" style="grid-row:${n.start}">
+      <span class="nm">${t?esc(t.name):'未定'}</span>${t?`<em>${esc(t.pref)}</em>`:''}
+      ${pv?`<i style="${heatStyle(pv)}" title="あなたがつけた点">${pv}</i>`:''}</div>`);
+  };
+
+  /* 試合（縦線で子どうしを結び、勝者を線の上に書く） */
+  const match = (n, col) => {
+    const found = matchByDay(n.g.date, n.g.no);
+    const m = found && found.m;
+    const wIdx = m ? m.w : null;
+    const sc = BR_SCORE[n.g.date+'#'+n.g.no];
+    const pct = v => (v / n.rows * 100).toFixed(3) + '%';
+    const top = n.a.center, bot = n.a.rows + n.b.center;
+    // シード校（1回戦がない）は列がひとつ空くので、その手前まで線を伸ばす
+    const stub = (child, at) => {
+      const ext = (child.kind==='t' && col>2) ? col-2 : 0;
+      const st = ext ? `left:calc(${-ext} * var(--btc));width:calc(${ext} * var(--btc) + 9px);` : '';
+      return `<i class="bt-s" style="${st}top:${at}"></i>`;
+    };
+    const label = wIdx!=null
+      ? `<b>${esc(TEAMS[wIdx].name)}</b>${sc && sc.hs!=null && sc.as!=null
+            ? `<u>${Math.max(sc.hs,sc.as)}-${Math.min(sc.hs,sc.as)}</u>` : ''}`
+      : `${mdOf(n.g.date)} 第${n.g.no}`;
+    cells.push(`<div class="bt-m ${wIdx!=null?'done':''}" style="grid-column:${col};grid-row:${n.start}/span ${n.rows}">
+      ${stub(n.a, pct(top))}${stub(n.b, pct(bot))}
+      <i class="bt-v" style="top:${pct(top)};height:${pct(bot-top)}"></i>
+      <i class="bt-h" style="top:${pct(n.center)}"></i>
+      <span class="bt-lb" style="top:${pct(n.center)}">${label}</span>
+    </div>`);
+  };
+
+  const walk = (n, col) => {
+    if(n.kind==='t'){ team(n); return; }
+    walk(n.a, col-1); walk(n.b, col-1);
+    match(n, col);
+  };
+  roots.forEach(r=> walk(r, 4));           // 3回戦=4列目 / 2回戦=3 / 1回戦=2 / 学校=1
+
+  const legend = myPicks
+    ? `<div class="bt-leg">校名の右の数字は <b>${esc(ME)}</b> さんがつけた点。<b>1つ勝つたびにその点が入ります。</b></div>`
+    : ((ST.players||[]).length ? `<div class="bt-leg">「順位」タブで自分の名前を選ぶと、校名の横に<b>自分がつけた点</b>が出ます。</div>` : '');
+  host.innerHTML = legend +
+    `<div class="bt-wrap"><div class="bt">${cells.join('')}</div></div>` +
+    `<div class="bt-leg">上が1塁側。${esc(BRACKET.note||'')}</div>`;
+}
+
 function resetBracket(){
   if(!confirm('対戦表を空にします。入力した勝敗も消えますか？\n※学校の勝利数・敗退はそのまま残ります')) return;
   ST.matches = initMatches(); save(); render(); toast('対戦表を空にしました');
@@ -1468,9 +1605,19 @@ async function fetchJson(path){
   return await r2.json();
 }
 let AUTO = { state:'idle', at:0, msg:'', unmatched:[], data:null };
-/* 対戦表の各行が「何月何日の第何試合か」。取り込みのたびに作り直す */
-let BR_DAY = {};
+/* 抽選で決まった1〜3回戦の枝分かれ（data/bracket.json）。取れなければ一覧だけ出す */
+let BRACKET = null;
+/* 日付#第N試合 → {hs,as}。枝分かれ図にスコアを出すため */
+let BR_SCORE = {};
 
+/* 抽選表を読む。1回きり（抽選は8/1に済んでいて、もう変わらない）。
+   取れなくても致命的ではない ── そのときは今までどおり一覧だけ出す。 */
+async function fetchBracket(){
+  try{
+    const d = await fetchJson('data/bracket.json');
+    if(d && Array.isArray(d.games) && Array.isArray(d.order) && d.order.length===49){ BRACKET = d; render(); }
+  }catch(e){ /* 一覧で困らないので黙って諦める */ }
+}
 function autoEnabled(){ return localStorage.getItem('pb_koshien_auto') !== 'off'; }
 function setAuto(on){ localStorage.setItem('pb_koshien_auto', on?'on':'off'); if(on) fetchGames(true); else render(); }
 
@@ -1490,7 +1637,6 @@ function mapGames(games){
    8/5第1 → 8/6第1 → 8/7第1 …→ 8/7第2 … と日付がばらばらになる */
 function buildFromGames(list){
   const ms = initMatches();
-  BR_DAY = {};
   ROUNDS.forEach((rd,ri)=>{
     const base = ms.findIndex(m=>m.r===ri);
     list.filter(g=>g.round===rd.l)
@@ -1501,7 +1647,7 @@ function buildFromGames(list){
       m.a = (g.a===undefined?null:g.a); m.b = (g.b===undefined?null:g.b);
       m.w = (g.w===undefined?null:g.w);
       if(m.w!=null && m.w!==m.a && m.w!==m.b) m.w = null;   // 念のため
-      BR_DAY[base+k] = {date:g.date, no:g.no};              // 対戦表に日付を出すため
+      m.d = g.date; m.n = g.no;                            // いつの第何試合か（表示と枝分かれ図に使う）
     });
   });
   const wins=new Array(N).fill(0), out=new Array(N).fill(false);
@@ -1515,6 +1661,8 @@ async function fetchGames(silent){
     const d = await fetchJson(GAMES_URL);
     if(!d || !Array.isArray(d.games)) throw new Error('形式が違います');
     AUTO.data = d;
+    BR_SCORE = {};
+    d.games.forEach(g=> BR_SCORE[g.date+'#'+Number((g.no.match(/\d+/)||[0])[0])] = {hs:g.homeScore, as:g.awayScore});
     const {list, unmatched} = mapGames(d.games);
     AUTO.unmatched = unmatched;
     if(unmatched.length){
@@ -2538,7 +2686,7 @@ function updateDemoBar(){
 
   // 試合結果の自動取り込み：起動直後・10分ごと・画面に戻ってきた時
   if(!IS_DEMO && !VIEWING_SHARE){
-    setTimeout(()=>{ fetchPool(true); fetchGames(true); }, 600);
+    setTimeout(()=>{ fetchBracket(); fetchPool(true); fetchGames(true); }, 600);
     setInterval(()=>{ if(!document.hidden){ fetchPool(true); fetchGames(true); } }, 3*60*1000);
     setTimeout(checkForUpdate, 4000);
     setInterval(()=>{ if(!document.hidden) checkForUpdate(); }, 20*60*1000);
