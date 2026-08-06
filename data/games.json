@@ -4,8 +4,8 @@
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 25,
-  "decided": 2,
+  "paired": 26,
+  "decided": 3,
   "broken": 0,
   "vanished": 0
  },
@@ -67,10 +67,10 @@
    "no": "第2試合",
    "home": "聖隷クリストファー （静岡）",
    "away": "佐野日大 （栃木）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 0,
+   "awayScore": 1,
+   "winner": "佐野日大 （栃木）",
+   "status": "試合終了"
   },
   {
    "id": "2021048483",
@@ -342,7 +342,7 @@
    "round": "2回戦",
    "no": "第3試合",
    "home": "神村学園 （鹿児島）",
-   "away": null,
+   "away": "佐野日大 （栃木）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
