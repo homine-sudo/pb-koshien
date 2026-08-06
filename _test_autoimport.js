@@ -35,10 +35,12 @@ eq('ラウンド構成', d.byRound.map(r=>r.n), [17,16,8,4,2,1]);
 eq('アプリのラウンド構成と一致', A.ROUNDS.map(r=>r.n), d.byRound.map(r=>r.n));
 eq('ラウンド名も一致', A.ROUNDS.map(r=>r.l), d.byRound.map(r=>r.round));
 const m0 = A.mapGames(d.games);
-eq('照合できない校名（抽選前なので0のはず）', m0.unmatched, []);
+eq('照合できない校名（0でなければ取り込みを止める）', m0.unmatched, []);
 const b0 = A.buildFromGames(m0.list);
 eq('作られた対戦表の数', b0.matches.length, 48);
-eq('抽選前なので勝ち数は全部0', b0.wins.reduce((a,b)=>a+b,0), 0);
+// 開幕後は勝ち数が増える。games.json が「勝敗確定」と数えた試合数と必ず一致すること
+// （2026-08-06 まではここが「全部0」固定だった＝開幕したら必ず落ちる書き方だった）
+eq('勝ち数の合計 = games.json の勝敗確定数', b0.wins.reduce((a,b)=>a+b,0), d.counts.decided);
 
 console.log('\n[2] 抽選＋結果が入った状態を作って取り込む');
 // 実データの器に、こちらで組み合わせと勝敗を流し込んで模擬する

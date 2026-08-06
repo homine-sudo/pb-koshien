@@ -55,8 +55,11 @@ function parseDay(html, date) {
       const away = it.match(/class="bb-score__away"[\s\S]*?<p>([\s\S]*?)<\/p>/);
       if (!idm || !home || !away) continue;
 
-      // スコア：<span class="bb-score__score">…</span> が2つ入る形
-      const scores = [...it.matchAll(/class="bb-score__score"[^>]*>([\s\S]*?)<\/span>/g)].map(m => strip(m[1]));
+      // スコア：<span class="bb-score__score bb-score__score--left">3</span>
+      //         <span class="… --center">-</span><span class="… --right">1</span>
+      // 修飾子(--left/--right)で拾う。真ん中の "-" を混ぜないこと。
+      // ※ class="bb-score__score" の完全一致で探すと1件も取れない（2026-08-06 修正）
+      const scores = [...it.matchAll(/bb-score__score--(?:left|right)[^>]*>([\s\S]*?)<\/span>/g)].map(m => strip(m[1]));
       const st = it.match(/class="bb-score__link"[^>]*>([\s\S]*?)<\/[a-z]+>/);
 
       const hName = strip(home[1]);
@@ -115,10 +118,17 @@ function parseDay(html, date) {
 
   const decided = all.filter(g => g.winner).length;
   const paired  = all.filter(g => g.home && g.away).length;
+  // 「試合終了なのに勝敗が取れていない」= 取得側の不具合。黙って通さない
+  const broken = all.filter(g => /試合終了/.test(g.status) && !g.winner &&
+                                 !(g.homeScore !== null && g.homeScore === g.awayScore));
+  if (broken.length) {
+    console.error(`\n⚠ 取得できていない試合が ${broken.length} 件あります（HTMLの形が変わった可能性）`);
+    broken.forEach(g => console.error(`   ${g.date} ${g.round}${g.no} ${g.home} vs ${g.away} [${g.status}]`));
+  }
   const out = {
     source: 'https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/',
     fetchedAt: new Date().toISOString(),
-    counts: { games: all.length, paired, decided },
+    counts: { games: all.length, paired, decided, broken: broken.length },
     byRound: ROUND_ORDER.map(r => ({ round: r, n: all.filter(g => g.round === r).length })),
     games: all
   };
