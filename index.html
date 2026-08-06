@@ -266,7 +266,9 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .br-note{font-size:11px;color:var(--ink3);padding:7px 12px 0;line-height:1.6}
 .br-m{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line)}
 .br-m:last-child{border-bottom:0}
-.br-no{width:20px;text-align:center;font-size:10.5px;color:var(--ink3);flex:none;font-variant-numeric:tabular-nums}
+.br-no{width:34px;text-align:center;font-size:10.5px;color:var(--ink3);flex:none;font-variant-numeric:tabular-nums;line-height:1.35}
+.br-no b{display:block;font-size:11px;font-weight:700;color:var(--ink2)}
+.br-no i{display:block;font-style:normal;font-size:10px;color:var(--ink3)}
 .br-pair{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
 .br-slot{
   display:flex;align-items:center;width:100%;text-align:left;font-size:12.5px;font-weight:600;color:var(--ink);
@@ -335,7 +337,10 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
   width:40px;min-width:40px;text-align:center;font-weight:800;font-size:11.5px;
   font-variant-numeric:tabular-nums;background:#FAFBFC;
 }
-.pm tr.flat th.pm-t{color:var(--ink3)}
+/* 「差が小さい＝順位が動きにくい」は “差” の欄だけで示す。
+   校名まで薄くすると、勝ち残っている校が『敗退した校』と同じ見た目になってしまう
+   （横浜・神村学園が薄い、という指摘。どちらも差が小さいだけで敗退ではない） */
+.pm tr.flat td.pm-g{opacity:.5}
 .hotbox{
   background:#FFF8EE;border:1px solid #F0DEC2;border-radius:8px;padding:9px 11px;margin-bottom:10px;
   font-size:12px;line-height:1.7;color:#7A5320;
@@ -1361,6 +1366,13 @@ function matchNoIn(mi){
   let c=0; for(let i=0;i<mi;i++) if(ST.matches[i].r===ST.matches[mi].r) c++;
   return c+1;
 }
+/* その行が「いつの第何試合か」。取り込み前は通し番号だけ出す */
+function brWhen(mi){
+  const d = BR_DAY[mi];
+  if(!d || !d.date) return matchNoIn(mi);
+  const p = d.date.split('-');
+  return `<b>${+p[1]}/${+p[2]}</b><i>${d.no?'第'+d.no:''}</i>`;
+}
 /* 勝者を決める（もう一度押すと取り消し） */
 function pickWinner(mi, side){
   if(!canEdit('勝敗を入力', true)) return;   // デモは触って試せるように
@@ -1421,7 +1433,7 @@ function renderBracket(){
       ${rd.note?`<div class="br-note">${rd.note}</div>`:''}
       ${idxs.map(mi=>`
         <div class="br-m">
-          <div class="br-no">${matchNoIn(mi)}</div>
+          <div class="br-no">${brWhen(mi)}</div>
           <div class="br-pair">${cell(mi,'a')}${cell(mi,'b')}</div>
         </div>`).join('')}
     </details>`;
@@ -1456,6 +1468,8 @@ async function fetchJson(path){
   return await r2.json();
 }
 let AUTO = { state:'idle', at:0, msg:'', unmatched:[], data:null };
+/* 対戦表の各行が「何月何日の第何試合か」。取り込みのたびに作り直す */
+let BR_DAY = {};
 
 function autoEnabled(){ return localStorage.getItem('pb_koshien_auto') !== 'off'; }
 function setAuto(on){ localStorage.setItem('pb_koshien_auto', on?'on':'off'); if(on) fetchGames(true); else render(); }
@@ -1471,17 +1485,23 @@ function mapGames(games){
   const list = games.map(conv);
   return { list, unmatched:[...unmatched] };
 }
-/* 取り込んだ内容で対戦表・勝ち数・敗退を作り直す（何度やっても同じ結果になる） */
+/* 取り込んだ内容で対戦表・勝ち数・敗退を作り直す（何度やっても同じ結果になる）
+   並びは「日付 → その日の第N試合」。試合番号だけで並べると
+   8/5第1 → 8/6第1 → 8/7第1 …→ 8/7第2 … と日付がばらばらになる */
 function buildFromGames(list){
   const ms = initMatches();
+  BR_DAY = {};
   ROUNDS.forEach((rd,ri)=>{
     const base = ms.findIndex(m=>m.r===ri);
-    list.filter(g=>g.round===rd.l).sort((x,y)=>x.no-y.no).forEach((g,k)=>{
+    list.filter(g=>g.round===rd.l)
+        .sort((x,y)=> x.date===y.date ? x.no-y.no : (x.date<y.date?-1:1))
+        .forEach((g,k)=>{
       if(k>=rd.n) return;
       const m = ms[base+k];
       m.a = (g.a===undefined?null:g.a); m.b = (g.b===undefined?null:g.b);
       m.w = (g.w===undefined?null:g.w);
       if(m.w!=null && m.w!==m.a && m.w!==m.b) m.w = null;   // 念のため
+      BR_DAY[base+k] = {date:g.date, no:g.no};              // 対戦表に日付を出すため
     });
   });
   const wins=new Array(N).fill(0), out=new Array(N).fill(false);
@@ -1502,8 +1522,19 @@ async function fetchGames(silent){
       AUTO.msg = `校名が照合できません：${unmatched.slice(0,3).join('・')}${unmatched.length>3?' ほか':''}`;
       render(); return;
     }
-    AUTO.state='ok'; AUTO.at=Date.now();
-    AUTO.msg = `${d.counts.decided}試合 決着 ／ 取得 ${fmtTs(new Date(d.fetchedAt).getTime())}`;
+    AUTO.at=Date.now();
+    const got = `${d.counts.decided}試合 決着 ／ 取得 ${fmtTs(new Date(d.fetchedAt).getTime())}`;
+    // 数が足りない＝どこかの試合を丸ごと取りこぼしている。
+    // 「エラーが出ない＝動いている」ではないので、足りないことは必ず出す
+    const want = d.counts.expected || TOTAL_GAMES;
+    const lack = want - d.counts.games;
+    if(lack>0 || d.counts.broken){
+      AUTO.state='warn';
+      AUTO.msg = lack>0 ? `${got}（${want}試合のうち ${lack}試合ぶんが取れていません）`
+                        : `${got}（勝敗が読めない試合が ${d.counts.broken}件）`;
+    }else{
+      AUTO.state='ok'; AUTO.msg = got;
+    }
     if(autoEnabled() && !VIEWING_SHARE){
       const b = buildFromGames(list);
       const changed = JSON.stringify(b.wins)!==JSON.stringify(ST.wins) || JSON.stringify(b.matches)!==JSON.stringify(ST.matches);
