@@ -1,10 +1,10 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-06T08:32:40.190Z",
+ "fetchedAt": "2026-08-06T11:21:47.323Z",
  "counts": {
   "games": 47,
   "paired": 24,
-  "decided": 1,
+  "decided": 2,
   "broken": 0
  },
  "byRound": [
@@ -47,16 +47,16 @@
    "status": "試合終了"
   },
   {
-   "id": "2021048482",
+   "id": "2021048481",
    "date": "2026-08-06",
    "round": "1回戦",
-   "no": "第2試合",
-   "home": "聖隷クリストファー （静岡）",
-   "away": "佐野日大 （栃木）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "no": "第1試合",
+   "home": "神村学園 （鹿児島）",
+   "away": "東筑 （福岡）",
+   "homeScore": 5,
+   "awayScore": 1,
+   "winner": "神村学園 （鹿児島）",
+   "status": "試合終了"
   },
   {
    "id": "2021048483",
@@ -327,7 +327,7 @@
    "date": "2026-08-12",
    "round": "2回戦",
    "no": "第3試合",
-   "home": null,
+   "home": "神村学園 （鹿児島）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
