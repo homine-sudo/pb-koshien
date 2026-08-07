@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-07T07:29:39.171Z",
+ "fetchedAt": "2026-08-07T09:31:16.440Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 27,
-  "decided": 5,
+  "decided": 6,
   "broken": 0,
-  "vanished": 1
+  "vanished": 0
  },
  "byRound": [
   {
@@ -103,10 +103,10 @@
    "no": "第3試合",
    "home": "立命館宇治 （京都）",
    "away": "有明 （熊本）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 3,
+   "awayScore": 6,
+   "winner": "有明 （熊本）",
+   "status": "試合終了"
   },
   {
    "id": "2021048486",
