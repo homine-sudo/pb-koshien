@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-07T14:17:41.438Z",
+ "fetchedAt": "2026-08-07T22:52:29.707Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -125,8 +125,8 @@
    "date": "2026-08-08",
    "round": "1回戦",
    "no": "第1試合",
-   "home": "遊学館 （石川）",
-   "away": "青森山田 （青森）",
+   "home": "青森山田 （青森）",
+   "away": "遊学館 （石川）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
