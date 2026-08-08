@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-08T08:54:22.642Z",
+ "fetchedAt": "2026-08-08T09:49:18.292Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 29,
-  "decided": 9,
+  "decided": 10,
   "broken": 0,
-  "vanished": 1
+  "vanished": 0
  },
  "byRound": [
   {
@@ -151,10 +151,10 @@
    "no": "第3試合",
    "home": "日本文理 （新潟）",
    "away": "大分商 （大分）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 4,
+   "awayScore": 6,
+   "winner": "大分商 （大分）",
+   "status": "試合終了"
   },
   {
    "id": "2021048490",
@@ -389,7 +389,7 @@
    "date": "2026-08-13",
    "round": "2回戦",
    "no": "第3試合",
-   "home": null,
+   "home": "大分商 （大分）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
