@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-08T06:51:39.131Z",
+ "fetchedAt": "2026-08-08T08:54:22.642Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 29,
   "decided": 9,
   "broken": 0,
-  "vanished": 0
+  "vanished": 1
  },
  "byRound": [
   {
@@ -161,8 +161,8 @@
    "date": "2026-08-08",
    "round": "1回戦",
    "no": "第4試合",
-   "home": "英明 （香川）",
-   "away": "関東第一 （東東京）",
+   "home": "関東第一 （東東京）",
+   "away": "英明 （香川）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
