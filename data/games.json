@@ -1,10 +1,10 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-08T11:37:27.632Z",
+ "fetchedAt": "2026-08-08T11:59:05.543Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 29,
+  "paired": 30,
   "decided": 11,
   "broken": 0,
   "vanished": 0
@@ -390,7 +390,7 @@
    "round": "2回戦",
    "no": "第3試合",
    "home": "大分商 （大分）",
-   "away": null,
+   "away": "英明 （香川）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
