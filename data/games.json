@@ -1,11 +1,11 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-08T13:53:46.074Z",
+ "fetchedAt": "2026-08-09T02:22:46.620Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 30,
-  "decided": 11,
+  "decided": 12,
   "broken": 0,
   "vanished": 0
  },
@@ -175,10 +175,10 @@
    "no": "第1試合",
    "home": "新田 （愛媛）",
    "away": "花巻東 （岩手）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 2,
+   "awayScore": 4,
+   "winner": "花巻東 （岩手）",
+   "status": "試合終了"
   },
   {
    "id": "2021048492",
@@ -401,7 +401,7 @@
    "date": "2026-08-14",
    "round": "2回戦",
    "no": "第1試合",
-   "home": null,
+   "home": "花巻東 （岩手）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
