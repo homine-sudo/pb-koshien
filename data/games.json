@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-09T09:51:04.349Z",
+ "fetchedAt": "2026-08-09T13:09:35.306Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 31,
-  "decided": 14,
+  "paired": 32,
+  "decided": 15,
   "broken": 0,
-  "vanished": 1
+  "vanished": 0
  },
  "byRound": [
   {
@@ -211,10 +211,10 @@
    "no": "第4試合",
    "home": "中京 （岐阜）",
    "away": "霞ケ浦 （茨城）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 3,
+   "awayScore": 6,
+   "winner": "霞ケ浦 （茨城）",
+   "status": "試合終了"
   },
   {
    "id": "2021048495",
@@ -414,7 +414,7 @@
    "round": "2回戦",
    "no": "第2試合",
    "home": "鳴門渦潮 （徳島）",
-   "away": null,
+   "away": "霞ケ浦 （茨城）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
