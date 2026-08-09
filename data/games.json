@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-09T14:02:55.682Z",
+ "fetchedAt": "2026-08-09T22:46:48.144Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -221,8 +221,8 @@
    "date": "2026-08-10",
    "round": "1回戦",
    "no": "第1試合",
-   "home": "明徳義塾 （高知）",
-   "away": "日南学園 （宮崎）",
+   "home": "日南学園 （宮崎）",
+   "away": "明徳義塾 （高知）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
