@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-10T10:04:20.550Z",
+ "fetchedAt": "2026-08-10T13:36:23.048Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 33,
-  "decided": 18,
+  "paired": 34,
+  "decided": 19,
   "broken": 0,
-  "vanished": 1
+  "vanished": 0
  },
  "byRound": [
   {
@@ -257,12 +257,12 @@
    "date": "2026-08-10",
    "round": "2回戦",
    "no": "第4試合",
-   "home": "天理 （奈良）",
-   "away": "福山 （広島）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "home": "福山 （広島）",
+   "away": "天理 （奈良）",
+   "homeScore": 2,
+   "awayScore": 7,
+   "winner": "天理 （奈良）",
+   "status": "試合終了"
   },
   {
    "id": "2021048499",
@@ -438,7 +438,7 @@
    "round": "3回戦",
    "no": "第1試合",
    "home": "高川学園 （山口）",
-   "away": null,
+   "away": "天理 （奈良）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
