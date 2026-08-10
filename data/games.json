@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-10T06:58:52.874Z",
+ "fetchedAt": "2026-08-10T10:04:20.550Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 33,
-  "decided": 17,
+  "decided": 18,
   "broken": 0,
-  "vanished": 0
+  "vanished": 1
  },
  "byRound": [
   {
@@ -247,10 +247,10 @@
    "no": "第3試合",
    "home": "高岡商 （富山）",
    "away": "高川学園 （山口）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 1,
+   "awayScore": 7,
+   "winner": "高川学園 （山口）",
+   "status": "試合終了"
   },
   {
    "id": "2021048498",
@@ -437,7 +437,7 @@
    "date": "2026-08-15",
    "round": "3回戦",
    "no": "第1試合",
-   "home": null,
+   "home": "高川学園 （山口）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
