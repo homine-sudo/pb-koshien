@@ -1,11 +1,11 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-10T04:16:49.612Z",
+ "fetchedAt": "2026-08-10T06:58:52.874Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 32,
-  "decided": 16,
+  "paired": 33,
+  "decided": 17,
   "broken": 0,
   "vanished": 0
  },
@@ -235,10 +235,10 @@
    "no": "第2試合",
    "home": "沖縄尚学 （沖縄）",
    "away": "横浜 （神奈川）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 2,
+   "awayScore": 7,
+   "winner": "横浜 （神奈川）",
+   "status": "試合終了"
   },
   {
    "id": "2021048497",
@@ -426,7 +426,7 @@
    "round": "2回戦",
    "no": "第3試合",
    "home": "日南学園 （宮崎）",
-   "away": null,
+   "away": "横浜 （神奈川）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
