@@ -409,6 +409,23 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 }
 .me-hint{font-size:10.5px;color:var(--ink3);margin-top:5px;line-height:1.6}
 .rk.me{box-shadow:inset 0 0 0 2px var(--navy)}
+
+/* ---- 優勝確率 ---- */
+.od{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line)}
+.od:last-child{border-bottom:0}
+.od-r{width:34px;flex:none;text-align:center;font-size:10px;color:var(--ink3);line-height:1.2}
+.od-r b{display:block;font-size:13px;font-weight:700;color:var(--ink2)}
+.od-b{flex:1;min-width:0}
+.od-nm{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.od-bar{height:6px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
+.od-bar i{display:block;height:100%;background:var(--navy2);border-radius:3px;transition:width .4s ease}
+.od.lead .od-bar i{background:var(--gold)}
+.od-p{text-align:right;flex:none;min-width:66px;font-variant-numeric:tabular-nums}
+.od-p b{font-size:16px}
+.od-p i{font-style:normal;font-size:11.5px;color:var(--ink3);font-weight:700}
+.od-p span{display:block;font-size:10px;color:var(--ink3)}
+.od-note{font-size:10.5px;color:var(--ink3);line-height:1.7;padding:8px 2px 0}
+.od.me{box-shadow:inset 0 0 0 2px var(--navy);border-radius:6px}
 .rk-you{
   display:inline-block;background:var(--navy);color:#fff;font-size:9.5px;font-weight:700;
   border-radius:9px;padding:1px 7px;margin-left:6px;vertical-align:1px;letter-spacing:.06em;
@@ -578,6 +595,10 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
     <div class="card-t">現在の順位 <span class="sub" id="rank-sub"></span></div>
     <div id="rank-list"></div>
   </div>
+  <div class="card hide" id="card-odds">
+    <div class="card-t">優勝確率 <span class="sub" id="odds-sub"></span></div>
+    <div id="odds-body"></div>
+  </div>
   <div class="card" id="card-progress">
     <div class="card-t">大会の進行</div>
     <div id="progress-body"></div>
@@ -709,7 +730,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-11';
+const APP_VERSION = '2026-08-11b';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -898,7 +919,7 @@ function go(pg){
 }
 function render(anim){
   renderAutoBar(); renderMeBar();
-  renderRank(anim); renderProgress(); renderTeams(); renderPicks(); renderBracket();
+  renderRank(anim); renderOdds(); renderProgress(); renderTeams(); renderPicks(); renderBracket();
   if(IS_ADMIN){ renderAdminPlayers(); renderResults(); refreshNameList(); renderIntegrity(); renderPoolBox(); }
 }
 
@@ -1226,6 +1247,140 @@ function renderTeams(){
       <div class="wpill ${x.o?'out':(x.w?'':'z')}">${x.o?'敗退 '+x.w+'勝':x.w+'勝'}</div>
       <div class="chev">›</div>
     </div>`).join('') : '<div class="empty">該当なし</div>';
+}
+
+/* ============================================================
+   優勝確率
+   残りの試合を、この端末の中で何万回もやり直して、
+   その人が1位で終わった割合を数える。サーバーは使わない。
+
+   ・1〜3回戦の枝は data/bracket.json（抽選で確定ずみ）
+   ・準々決勝から先はくじ引きなので、毎回組み合わせを引き直す
+   ・すでに決着した試合はそのまま固定
+   ・強さは「みんながその校につけた点の平均」。外部の戦力評価は持っていないので、
+     手元にある唯一の手がかりを使っている。あくまで目安。
+   ============================================================ */
+const ODDS_SIMS = 50000;
+const ODDS_TEMP = 24;              // 平均配点の差20点で勝率およそ7割、という握り
+let _oddsCache = null;             // {key, rows}
+
+function oddsKey(){
+  return [totalGames(), (ST.players||[]).map(p=>p.name).join(','),
+          (ST.wins||[]).join(','), BRACKET?1:0].join('|');
+}
+function fmtOdds(p){ return p<=0 ? '<i>ほぼ0%</i>' : p<0.1 ? '<i>0.1%未満</i>' : p.toFixed(1)+'%'; }
+
+function runOdds(sims){
+  if(!BRACKET || !Array.isArray(BRACKET.games)) return null;
+  const picks = (ST.players||[]).map(p=>Array.isArray(p.picks)?p.picks:[]);
+  const np = picks.length;
+  if(np < 2) return null;
+
+  /* 強さ。expを先に計算しておくと、勝敗判定が割り算1回で済む */
+  const es = new Array(N);
+  for(let i=0;i<N;i++){
+    let s=0; for(let k=0;k<np;k++) s += picks[k][i]||0;
+    es[i] = Math.exp((s/np)/ODDS_TEMP);
+  }
+  const beat = (a,b)=> Math.random() < es[a]/(es[a]+es[b]) ? a : b;
+
+  /* 抽選表を、番号だけの形にほぐしておく（毎回文字列を引かないため） */
+  const node = {};
+  for(const g of BRACKET.games){
+    const f = matchByDay(g.date, g.no);
+    node[g.date+'#'+g.no] = {
+      a: g.a.t!=null ? {t:findTeam(g.a.t)} : {k:g.a.w},
+      b: g.b.t!=null ? {t:findTeam(g.b.t)} : {k:g.b.w},
+      d: (f && f.m.w!=null) ? f.m.w : null            // 決着済みならその勝者
+    };
+  }
+  const roots = BRACKET.games.filter(g=>g.r===3).map(g=>g.date+'#'+g.no);
+
+  /* 準々決勝から先。抽選が済んでいればその組み合わせを使い、まだならくじを引く */
+  const later = [3,4,5].map(ri=>{
+    const ms = (ST.matches||[]).filter(m=>m.r===ri);
+    return {ms, drawn: ms.length>0 && ms.every(m=>m.a!=null && m.b!=null)};
+  });
+
+  const basePt = picks.map(q=>{
+    let s=0; for(let i=0;i<N;i++) if(ST.wins[i]) s += (q[i]||0)*ST.wins[i];
+    return s;
+  });
+
+  const pt = new Array(np), first = new Array(np).fill(0), share = new Array(np).fill(0);
+  const add = w => { for(let k=0;k<np;k++) pt[k] += picks[k][w]||0; };
+  const solve = k => {
+    const nd = node[k];
+    if(nd.d != null) return nd.d;                      // 決着済み＝もう basePt に入っている
+    const a = nd.a.t!=null ? nd.a.t : solve(nd.a.k);
+    const b = nd.b.t!=null ? nd.b.t : solve(nd.b.k);
+    const w = beat(a,b); add(w); return w;
+  };
+
+  for(let n=0;n<sims;n++){
+    for(let k=0;k<np;k++) pt[k] = basePt[k];
+    let alive = roots.map(solve);
+    for(const {ms, drawn} of later){
+      if(alive.length <= 1) break;
+      const next = [];
+      if(drawn){
+        for(const m of ms){
+          if(m.w != null){ next.push(m.w); continue; }
+          const w = beat(m.a, m.b); add(w); next.push(w);
+        }
+      }else{
+        for(let i=alive.length-1;i>0;i--){         // くじ＝並びをかき混ぜて上から2つずつ
+          const j=(Math.random()*(i+1))|0, t=alive[i]; alive[i]=alive[j]; alive[j]=t;
+        }
+        for(let i=0;i+1<alive.length;i+=2){ const w = beat(alive[i], alive[i+1]); add(w); next.push(w); }
+      }
+      alive = next;
+    }
+    let best=-Infinity, cnt=0;
+    for(let k=0;k<np;k++){ if(pt[k]>best){ best=pt[k]; cnt=1; } else if(pt[k]===best) cnt++; }
+    for(let k=0;k<np;k++) if(pt[k]===best){ share[k] += 1/cnt; if(cnt===1) first[k]++; }
+  }
+  return ST.players.map((p,k)=>({ name:p.name, p: share[k]/sims*100 }))
+                   .sort((a,b)=> b.p-a.p || a.name.localeCompare(b.name));
+}
+
+function renderOdds(){
+  const card = document.getElementById('card-odds'); if(!card) return;
+  const hide = ()=> card.classList.add('hide');
+  // 公開前・抽選表が無い・人が少ない・全試合終了、のときは出さない
+  if(!isPublished() || !BRACKET || (ST.players||[]).length<2 || totalGames()>=TOTAL_GAMES) return hide();
+  const key = oddsKey();
+  if(_oddsCache && _oddsCache.key===key) return paintOdds(_oddsCache.rows);
+  card.classList.remove('hide');
+  document.getElementById('odds-sub').textContent = '計算中…';
+  setTimeout(()=>{                                   // 画面を先に出してから計算する
+    if(oddsKey()!==key) return;
+    const rows = runOdds(ODDS_SIMS);
+    if(!rows) return hide();
+    _oddsCache = {key, rows};
+    paintOdds(rows);
+  }, 30);
+}
+function paintOdds(rows){
+  const card = document.getElementById('card-odds');
+  card.classList.remove('hide');
+  const rk = {}; ranking().forEach(r=> rk[r.name]=r.rank);
+  const max = Math.max(rows[0] ? rows[0].p : 1, 1);
+  document.getElementById('odds-sub').textContent = `残り ${TOTAL_GAMES-totalGames()} 試合`;
+  document.getElementById('odds-body').innerHTML = rows.map((r,i)=>`
+    <div class="od ${i===0?'lead':''}${r.name===ME?' me':''}">
+      <div class="od-r">現在<b>${rk[r.name]||'-'}</b>位</div>
+      <div class="od-b">
+        <div class="od-nm">${esc(r.name)}${r.name===ME?'<span class="rk-you">あなた</span>':''}</div>
+        <div class="od-bar"><i style="width:${Math.round(r.p/max*100)}%"></i></div>
+      </div>
+      <div class="od-p"><b>${fmtOdds(r.p)}</b><span>優勝</span></div>
+    </div>`).join('') + `
+    <div class="od-note">
+      残りの試合を<b>5万回</b>やり直して、その人が1位で終わった割合です。<br>
+      強さは<b>みんながその校につけた点の平均</b>とみなしています（プロの戦力評価は使っていません）。<br>
+      準々決勝から先はくじ引きなので、毎回組み合わせを引き直しています。<b>あくまで目安です。</b>
+    </div>`;
 }
 
 /* ---- 予想一覧（エクセルと同じマトリクス） ---- */
