@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-11T14:01:28.886Z",
+ "fetchedAt": "2026-08-11T22:58:28.049Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -317,8 +317,8 @@
    "date": "2026-08-12",
    "round": "2回戦",
    "no": "第1試合",
-   "home": "拓大紅陵 （千葉）",
-   "away": "佐賀商 （佐賀）",
+   "home": "佐賀商 （佐賀）",
+   "away": "拓大紅陵 （千葉）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
