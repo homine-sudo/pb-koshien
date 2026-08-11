@@ -1,11 +1,11 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-10T14:40:53.507Z",
+ "fetchedAt": "2026-08-11T02:21:23.502Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 34,
-  "decided": 19,
+  "decided": 20,
   "broken": 0,
   "vanished": 0
  },
@@ -271,10 +271,10 @@
    "no": "第1試合",
    "home": "横手 （秋田）",
    "away": "敦賀気比 （福井）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 0,
+   "awayScore": 10,
+   "winner": "敦賀気比 （福井）",
+   "status": "試合終了"
   },
   {
    "id": "2021048500",
@@ -449,7 +449,7 @@
    "date": "2026-08-15",
    "round": "3回戦",
    "no": "第2試合",
-   "home": null,
+   "home": "敦賀気比 （福井）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
