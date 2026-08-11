@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-11T03:57:32.746Z",
+ "fetchedAt": "2026-08-11T06:08:10.620Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 34,
   "decided": 20,
   "broken": 0,
-  "vanished": 0
+  "vanished": 1
  },
  "byRound": [
   {
@@ -293,8 +293,8 @@
    "date": "2026-08-11",
    "round": "2回戦",
    "no": "第3試合",
-   "home": "履正社 （大阪）",
-   "away": "享栄 （愛知）",
+   "home": "享栄 （愛知）",
+   "away": "履正社 （大阪）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
