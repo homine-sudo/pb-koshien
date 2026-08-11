@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-11T07:33:01.766Z",
+ "fetchedAt": "2026-08-11T08:32:56.920Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -305,8 +305,8 @@
    "date": "2026-08-11",
    "round": "2回戦",
    "no": "第4試合",
-   "home": "松商学園 （長野）",
-   "away": "三重 （三重）",
+   "home": "三重 （三重）",
+   "away": "松商学園 （長野）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
