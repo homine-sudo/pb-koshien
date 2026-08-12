@@ -1,10 +1,10 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-12T09:58:08.830Z",
+ "fetchedAt": "2026-08-12T10:16:38.029Z",
  "counts": {
-  "games": 48,
+  "games": 49,
   "expected": 48,
-  "paired": 37,
+  "paired": 38,
   "decided": 26,
   "broken": 0,
   "vanished": 0
@@ -16,7 +16,7 @@
   },
   {
    "round": "2回戦",
-   "n": 16
+   "n": 17
   },
   {
    "round": "3回戦",
@@ -361,10 +361,22 @@
    "status": "試合中止"
   },
   {
-   "id": "2021048507",
+   "id": "2021048619",
    "date": "2026-08-13",
    "round": "2回戦",
    "no": "第1試合",
+   "home": "東海大甲府 （山梨）",
+   "away": "健大高崎 （群馬）",
+   "homeScore": null,
+   "awayScore": null,
+   "winner": null,
+   "status": "試合前"
+  },
+  {
+   "id": "2021048507",
+   "date": "2026-08-13",
+   "round": "2回戦",
+   "no": "第2試合",
    "home": "有明 （熊本）",
    "away": "長崎日大 （長崎）",
    "homeScore": null,
@@ -376,7 +388,7 @@
    "id": "2021048508",
    "date": "2026-08-13",
    "round": "2回戦",
-   "no": "第2試合",
+   "no": "第3試合",
    "home": "青森山田 （青森）",
    "away": "東日大昌平 （福島）",
    "homeScore": null,
@@ -388,7 +400,7 @@
    "id": "2021048509",
    "date": "2026-08-13",
    "round": "2回戦",
-   "no": "第3試合",
+   "no": "第4試合",
    "home": "大分商 （大分）",
    "away": "英明 （香川）",
    "homeScore": null,
@@ -485,7 +497,7 @@
    "date": "2026-08-16",
    "round": "3回戦",
    "no": "第1試合",
-   "home": null,
+   "home": "佐野日大 （栃木）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
