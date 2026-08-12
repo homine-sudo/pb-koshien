@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-12T10:16:38.029Z",
+ "fetchedAt": "2026-08-12T11:12:44.169Z",
  "counts": {
   "games": 49,
   "expected": 48,
@@ -370,7 +370,7 @@
    "homeScore": null,
    "awayScore": null,
    "winner": null,
-   "status": "試合前"
+   "status": "見どころ"
   },
   {
    "id": "2021048507",
