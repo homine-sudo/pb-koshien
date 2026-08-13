@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-13T05:41:57.273Z",
+ "fetchedAt": "2026-08-13T06:02:13.817Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -498,7 +498,7 @@
    "date": "2026-08-16",
    "round": "3回戦",
    "no": "第2試合",
-   "home": null,
+   "home": "有明 （熊本）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
