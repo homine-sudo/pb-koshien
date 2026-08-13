@@ -310,7 +310,11 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 .bt-v{left:7px;width:2px}
 .bt-h{left:7px;right:3px;height:2px;margin-top:-1px}
 .bt-s{left:0;width:9px;height:2px;margin-top:-1px}
-.bt-m.done .bt-v,.bt-m.done .bt-h,.bt-m.done .bt-s{background:#9CCDB0}
+/* 勝ち上がった線だけ明るくする。負けた側は元の色のまま＝そこで線が終わって見える */
+.bt-v.won,.bt-h.won,.bt-s.won{background:#2E8B57}
+.bt-v.won{width:3px;left:6.5px}
+.bt-h.won,.bt-s.won{height:3px;margin-top:-1.5px}
+.bt-s.won{width:10px}
 .bt-lb{position:absolute;left:10px;right:1px;font-size:9.5px;line-height:1.2;color:var(--ink3);
   transform:translateY(-100%);padding-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bt-lb b{color:#1E5B39;font-weight:800;font-size:10.5px}
@@ -730,7 +734,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-13';
+const APP_VERSION = '2026-08-13b';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -1729,20 +1733,25 @@ function renderBracketTree(){
     const pct = v => (v / n.rows * 100).toFixed(3) + '%';
     const top = n.a.center, bot = n.a.rows + n.b.center;
     // シード校（1回戦がない）は列がひとつ空くので、その手前まで線を伸ばす
+    // その側が「この試合を勝ち上がった側」かどうか。負けた側は色を変えない
+    const won = child => (wIdx!=null && child.win===wIdx) ? ' won' : '';
     const stub = (child, at) => {
       const ext = (child.kind==='t' && col>2) ? col-2 : 0;
-      const st = ext ? `left:calc(${-ext} * var(--btc));width:calc(${ext} * var(--btc) + 9px);` : '';
-      return `<i class="bt-s" style="${st}top:${at}"></i>`;
+      const st = ext ? `left:calc(${-ext} * var(--btc));width:calc(${ext} * var(--btc) + 10px);` : '';
+      return `<i class="bt-s${won(child)}" style="${st}top:${at}"></i>`;
     };
     const label = wIdx!=null
       ? `<b>${esc(TEAMS[wIdx].name)}</b>${sc && sc.hs!=null && sc.as!=null
             ? `<u>${Math.max(sc.hs,sc.as)}-${Math.min(sc.hs,sc.as)}</u>` : ''}`
       : `${mdOf(day)} 第${no}`;
+    // 縦線は真ん中で上下に分け、勝ち上がった側の半分だけ明るくする
+    const mid = n.center;
     cells.push(`<div class="bt-m ${wIdx!=null?'done':''}" style="grid-column:${col};grid-row:${n.start}/span ${n.rows}">
       ${stub(n.a, pct(top))}${stub(n.b, pct(bot))}
-      <i class="bt-v" style="top:${pct(top)};height:${pct(bot-top)}"></i>
-      <i class="bt-h" style="top:${pct(n.center)}"></i>
-      <span class="bt-lb" style="top:${pct(n.center)}">${label}</span>
+      <i class="bt-v${won(n.a)}" style="top:${pct(top)};height:${pct(mid-top)}"></i>
+      <i class="bt-v${won(n.b)}" style="top:${pct(mid)};height:${pct(bot-mid)}"></i>
+      <i class="bt-h${wIdx!=null?' won':''}" style="top:${pct(mid)}"></i>
+      <span class="bt-lb" style="top:${pct(mid)}">${label}</span>
     </div>`);
   };
 
