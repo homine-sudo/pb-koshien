@@ -734,7 +734,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-13b';
+const APP_VERSION = '2026-08-13c';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -1849,8 +1849,14 @@ function buildFromGames(list){
     if(seen.has(k)) return; seen.add(k);
     wins[w]++; const l=(w===a)?b:a; if(l!=null) out[l]=true;
   });
-  return {matches:ms, wins, out};
+  // 枠(48)に入りきらなかった決着ぶん。順延で試合が組み直されると起きる
+  const placed = ms.filter(m=>m.w!=null).length;
+  const overflow = Math.max(0, wins.reduce((x,y)=>x+y,0) - placed);
+  return {matches:ms, wins, out, overflow};
 }
+/* 直近の取り込みで、対戦表に載りきらなかった試合の数。
+   「集計は正しいが表示が足りない」状態かどうかの判定に使う（点は触らない） */
+let IMPORT_OVERFLOW = 0;
 async function fetchGames(silent){
   if(IS_DEMO){ return; }
   AUTO.state='loading'; if(!silent) render();
@@ -1883,6 +1889,7 @@ async function fetchGames(silent){
     }
     if(autoEnabled() && !VIEWING_SHARE){
       const b = buildFromGames(list);
+      IMPORT_OVERFLOW = b.overflow || 0;
       const changed = JSON.stringify(b.wins)!==JSON.stringify(ST.wins) || JSON.stringify(b.matches)!==JSON.stringify(ST.matches);
       if(changed){
         const before = totalGames();
@@ -2105,10 +2112,18 @@ function checkIntegrity(){
   ST.wins.forEach((w,i)=>{ if(w>0 && ST.out[i] && !bracketInUse()) {} });
 
   if(bracketInUse()){
+    /* 対戦表の枠は48個しかない。順延で試合が組み直されて数が増えると
+       枠に入りきらないぶんが表に出ない。このとき**正しいのは集計の勝ち数**で、
+       「対戦表に合わせる」を押すとその勝ちが消えて全員の点が狂う。
+       だから、その状況では修正ボタンを出さない（2026-08-12 に実際に起きた） */
+    const shortTable = IMPORT_OVERFLOW > 0 && d.decided < sumWins;
     const wd=[]; for(let i=0;i<N;i++) if(d.wins[i]!==(ST.wins[i]||0)) wd.push(`${TEAMS[i].name}（表${d.wins[i]}勝→集計${ST.wins[i]||0}勝）`);
-    if(wd.length) p.push({lv:'ng',fix:true,t:`対戦表と勝ち数が食い違っています ${wd.length}校：${wd.slice(0,3).join('・')}${wd.length>3?' ほか':''}`});
+    if(wd.length) p.push(shortTable
+      ? {lv:'warn',t:`対戦表に載りきらない試合が ${sumWins-d.decided}件あります（順延で組み直された可能性）。`+
+                     `集計の勝ち数のほうが正しく、点数に影響はありません。「対戦表に合わせる」は押さないでください`}
+      : {lv:'ng',fix:true,t:`対戦表と勝ち数が食い違っています ${wd.length}校：${wd.slice(0,3).join('・')}${wd.length>3?' ほか':''}`});
     const od=[]; for(let i=0;i<N;i++) if(d.out[i]!==!!ST.out[i]) od.push(TEAMS[i].name);
-    if(od.length) p.push({lv:'ng',fix:true,t:`対戦表と敗退が食い違っています ${od.length}校：${od.slice(0,3).join('・')}${od.length>3?' ほか':''}`});
+    if(od.length && !shortTable) p.push({lv:'ng',fix:true,t:`対戦表と敗退が食い違っています ${od.length}校：${od.slice(0,3).join('・')}${od.length>3?' ほか':''}`});
     ROUNDS.forEach((rd,ri)=>{
       const seen={}, dup=[];
       ST.matches.forEach(m=>{ if(m.r!==ri) return; [m.a,m.b].forEach(x=>{ if(x==null) return; if(seen[x]) dup.push(TEAMS[x].name); seen[x]=1; }); });
