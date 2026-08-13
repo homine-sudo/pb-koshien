@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-13T06:02:13.817Z",
+ "fetchedAt": "2026-08-13T08:56:57.510Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 38,
-  "decided": 28,
+  "paired": 39,
+  "decided": 29,
   "broken": 0,
-  "vanished": 0,
+  "vanished": 1,
   "superseded": 1
  },
  "byRound": [
@@ -380,10 +380,10 @@
    "no": "第3試合",
    "home": "東日大昌平 （福島）",
    "away": "青森山田 （青森）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 6,
+   "awayScore": 2,
+   "winner": "東日大昌平 （福島）",
+   "status": "試合終了"
   },
   {
    "id": "2021048509",
@@ -499,7 +499,7 @@
    "round": "3回戦",
    "no": "第2試合",
    "home": "有明 （熊本）",
-   "away": null,
+   "away": "東日大昌平 （福島）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
