@@ -730,7 +730,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-11b';
+const APP_VERSION = '2026-08-13';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -1655,20 +1655,39 @@ function setBrMode(m){ _brMode = m; localStorage.setItem('pb_koshien_brmode', m)
 
 /* 抽選表から木を組み立てる。各節に「何行ぶんか（rows）」と
    「枝を出す位置（center・行単位）」を持たせる。シードは1行ぶん。 */
+/* 「どの2校が当たるか」で実際の試合を引く。
+   雨で順延になると日付も試合番号も変わる（中止のあと別IDで組み直される）ので、
+   日付＋第N試合で覚えていると枝が迷子になる。対戦カードなら変わらない。 */
+function pairIndex(){
+  const m = new Map();
+  (ST.matches||[]).forEach(x=>{
+    if(x.a==null || x.b==null) return;
+    const k = x.a<x.b ? x.a+','+x.b : x.b+','+x.a;
+    if(!m.has(k) || x.w!=null) m.set(k, x);      // 決着しているほうを優先（中止の残骸を避ける）
+  });
+  return m;
+}
 function btTree(){
   if(!BRACKET || !Array.isArray(BRACKET.games)) return null;
   const byKey = {};
   BRACKET.games.forEach(g=> byKey[g.date+'#'+g.no] = g);
+  const pairs = pairIndex();
   let row = 0;
   const node = side => {
-    if(side.t!=null){ row++; return {kind:'t', name:side.t, idx:findTeam(side.t), start:row, rows:1, center:0.5}; }
+    if(side.t!=null){ row++; const i=findTeam(side.t);
+      return {kind:'t', name:side.t, idx:i, win:i, start:row, rows:1, center:0.5}; }
     const g = byKey[side.w];
-    return g ? mk(g) : (row++, {kind:'t', name:'未定', idx:-1, start:row, rows:1, center:0.5});
+    return g ? mk(g) : (row++, {kind:'t', name:'未定', idx:-1, win:null, start:row, rows:1, center:0.5});
   };
   const mk = g => {
     const a = node(g.a), b = node(g.b);
-    return {kind:'m', g, a, b, start:a.start, rows:a.rows+b.rows,
-            center:(a.center + a.rows + b.center)/2};
+    let m = null;
+    if(a.win!=null && b.win!=null){
+      const k = a.win<b.win ? a.win+','+b.win : b.win+','+a.win;
+      m = pairs.get(k) || null;
+    }
+    return {kind:'m', g, a, b, m, win: (m && m.w!=null) ? m.w : null,
+            start:a.start, rows:a.rows+b.rows, center:(a.center + a.rows + b.center)/2};
   };
   const roots = BRACKET.games.filter(g=>g.r===3).map(mk);
   return (row===49) ? roots : null;        // 49行にならなければ表が壊れている
@@ -1702,10 +1721,11 @@ function renderBracketTree(){
 
   /* 試合（縦線で子どうしを結び、勝者を線の上に書く） */
   const match = (n, col) => {
-    const found = matchByDay(n.g.date, n.g.no);
-    const m = found && found.m;
-    const wIdx = m ? m.w : null;
-    const sc = BR_SCORE[n.g.date+'#'+n.g.no];
+    const m = n.m;                                  // 対戦カードで引き当てた実際の試合
+    const wIdx = n.win;
+    // 日付・第N試合は実際のものを優先（順延したらそちらが正しい）
+    const day = (m && m.d) ? m.d : n.g.date, no = (m && m.n) ? m.n : n.g.no;
+    const sc = BR_SCORE[day+'#'+no];
     const pct = v => (v / n.rows * 100).toFixed(3) + '%';
     const top = n.a.center, bot = n.a.rows + n.b.center;
     // シード校（1回戦がない）は列がひとつ空くので、その手前まで線を伸ばす
@@ -1717,7 +1737,7 @@ function renderBracketTree(){
     const label = wIdx!=null
       ? `<b>${esc(TEAMS[wIdx].name)}</b>${sc && sc.hs!=null && sc.as!=null
             ? `<u>${Math.max(sc.hs,sc.as)}-${Math.min(sc.hs,sc.as)}</u>` : ''}`
-      : `${mdOf(n.g.date)} 第${n.g.no}`;
+      : `${mdOf(day)} 第${no}`;
     cells.push(`<div class="bt-m ${wIdx!=null?'done':''}" style="grid-column:${col};grid-row:${n.start}/span ${n.rows}">
       ${stub(n.a, pct(top))}${stub(n.b, pct(bot))}
       <i class="bt-v" style="top:${pct(top)};height:${pct(bot-top)}"></i>
@@ -1807,8 +1827,19 @@ function buildFromGames(list){
       m.d = g.date; m.n = g.no;                            // いつの第何試合か（表示と枝分かれ図に使う）
     });
   });
+  /* 勝ち数・敗退は「枠に入ったぶん」ではなく取り込んだ試合そのものから数える。
+     順延で試合が増えると枠からあふれるが、勝敗まで落としてはいけない
+     （2026-08-12 の中止・組み直しで、日南学園 vs 横浜 が枠から落ちた） */
   const wins=new Array(N).fill(0), out=new Array(N).fill(false);
-  ms.forEach(m=>{ if(m.w==null) return; wins[m.w]++; const l=(m.w===m.a)?m.b:m.a; if(l!=null) out[l]=true; });
+  const seen = new Set();
+  list.forEach(g=>{
+    const w = (g.w===undefined?null:g.w); if(w==null) return;
+    const a = (g.a===undefined?null:g.a), b = (g.b===undefined?null:g.b);
+    if(w!==a && w!==b) return;
+    const k = a<b ? a+','+b : b+','+a;          // 同じカードを二重に数えない
+    if(seen.has(k)) return; seen.add(k);
+    wins[w]++; const l=(w===a)?b:a; if(l!=null) out[l]=true;
+  });
   return {matches:ms, wins, out};
 }
 async function fetchGames(silent){
@@ -1833,9 +1864,10 @@ async function fetchGames(silent){
     // 「エラーが出ない＝動いている」ではないので、足りないことは必ず出す
     const want = d.counts.expected || TOTAL_GAMES;
     const lack = want - d.counts.games;
-    if(lack>0 || d.counts.broken){
+    if(lack!==0 || d.counts.broken){
       AUTO.state='warn';
       AUTO.msg = lack>0 ? `${got}（${want}試合のうち ${lack}試合ぶんが取れていません）`
+               : lack<0 ? `${got}（試合が ${-lack}件 多い。順延で組み直された可能性）`
                         : `${got}（勝敗が読めない試合が ${d.counts.broken}件）`;
     }else{
       AUTO.state='ok'; AUTO.msg = got;

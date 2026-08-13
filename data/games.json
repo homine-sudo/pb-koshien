@@ -2,12 +2,13 @@
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
  "fetchedAt": "2026-08-13T05:41:57.273Z",
  "counts": {
-  "games": 49,
+  "games": 48,
   "expected": 48,
-  "paired": 39,
+  "paired": 38,
   "decided": 28,
   "broken": 0,
-  "vanished": 0
+  "vanished": 0,
+  "superseded": 1
  },
  "byRound": [
   {
@@ -16,7 +17,7 @@
   },
   {
    "round": "2回戦",
-   "n": 17
+   "n": 16
   },
   {
    "round": "3回戦",
@@ -347,18 +348,6 @@
    "awayScore": 3,
    "winner": "佐野日大 （栃木）",
    "status": "試合終了"
-  },
-  {
-   "id": "2021048506",
-   "date": "2026-08-12",
-   "round": "2回戦",
-   "no": "第4試合",
-   "home": "東海大甲府 （山梨）",
-   "away": "健大高崎 （群馬）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "試合中止"
   },
   {
    "id": "2021048619",
