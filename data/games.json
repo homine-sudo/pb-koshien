@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-13T08:56:57.510Z",
+ "fetchedAt": "2026-08-13T10:52:00.871Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 39,
-  "decided": 29,
+  "decided": 30,
   "broken": 0,
-  "vanished": 1,
+  "vanished": 0,
   "superseded": 1
  },
  "byRound": [
@@ -392,10 +392,10 @@
    "no": "第4試合",
    "home": "大分商 （大分）",
    "away": "英明 （香川）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 1,
+   "awayScore": 6,
+   "winner": "英明 （香川）",
+   "status": "試合終了"
   },
   {
    "id": "2021048510",
