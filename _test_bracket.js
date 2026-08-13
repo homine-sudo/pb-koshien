@@ -47,34 +47,57 @@ eq('1回戦 17', bracket.games.filter(g => g.r === 1).length, 17);
 eq('2回戦 16', bracket.games.filter(g => g.r === 2).length, 16);
 eq('3回戦 8',  bracket.games.filter(g => g.r === 3).length, 8);
 
-console.log('\n[3] games.json と1対1');
-const byKey = new Map(games.games.map(g => [key(g.date, noOf(g)), g]));
-let missing = [], wrongRound = [];
-bracket.games.forEach(b => {
-  const g = byKey.get(key(b.date, b.no));
-  if (!g) { missing.push(key(b.date, b.no)); return; }
-  if (g.round !== ROUND[b.r]) wrongRound.push(`${key(b.date, b.no)} ${g.round}≠${ROUND[b.r]}`);
+console.log('\n[3] 実際の試合と結びつく（対戦カードで照合）');
+/* 日付と試合番号は「予定」でしかない。雨で中止になると別IDで組み直され、
+   その日の試合番号も総ずれする（2026-08-12 に実際に起きた）。
+   なので結びつけは **どの2校が当たるか** で確かめる。 */
+const pairKey = (x, y) => [x, y].sort().join(' / ');
+const byPair = new Map();
+games.games.forEach(g => {
+  if (!g.home || !g.away) return;
+  const k = pairKey(norm(g.home), norm(g.away));
+  if (!byPair.has(k) || g.winner) byPair.set(k, g);       // 中止の残骸より決着ずみを優先
 });
-eq('games.json に無い試合はない', missing, []);
-eq('回戦のずれはない', wrongRound, []);
+const gByKey = new Map(bracket.games.map(b => [key(b.date, b.no), b]));
 
-const covered = new Set(bracket.games.map(b => key(b.date, b.no)));
-const uncovered = games.games
-  .filter(g => ['1回戦', '2回戦', '3回戦'].includes(g.round))
-  .map(g => key(g.date, noOf(g)))
-  .filter(k => !covered.has(k));
-eq('1〜3回戦で枝の無い試合はない', uncovered, []);
+/* 抽選表を下からたどって、各試合の「実際の対戦カードと勝者」を求める */
+const resolved = new Map();                                // bracketのキー → {a,b,game,winner}
+function resolve(k) {
+  if (resolved.has(k)) return resolved.get(k);
+  const b = gByKey.get(k);
+  const side = s => s.t != null ? norm(s.t) : (resolve(s.w) || {}).winner || null;
+  const a = side(b.a), c = side(b.b);
+  let game = null, winner = null;
+  if (a && c) { game = byPair.get(pairKey(a, c)) || null; if (game && game.winner) winner = norm(game.winner); }
+  const r = { a, b: c, game, winner };
+  resolved.set(k, r);
+  return r;
+}
+bracket.games.forEach(b => resolve(key(b.date, b.no)));
+
+const unmatched = [];
+resolved.forEach((r, k) => { if (r.a && r.b && !r.game) unmatched.push(`${k} ${r.a} vs ${r.b}`); });
+eq('対戦カードが決まっている枠は、必ず実際の試合が見つかる', unmatched, []);
+
+/* 逆向き：games.json の1〜3回戦（両校が決まっているもの）が、すべて抽選表のどこかの枠に居る */
+const inBracket = new Set();
+resolved.forEach(r => { if (r.a && r.b) inBracket.add(pairKey(r.a, r.b)); });
+const orphan = games.games
+  .filter(g => ['1回戦', '2回戦', '3回戦'].includes(g.round) && g.home && g.away)
+  .filter(g => !inBracket.has(pairKey(norm(g.home), norm(g.away))))
+  .map(g => `${g.date}#${noOf(g)} ${norm(g.home)} vs ${norm(g.away)}`);
+eq('抽選表に居ない対戦カードは無い', orphan, []);
 
 console.log('\n[4] 校名が games.json と合っている');
 const nameMismatch = [];
-bracket.games.forEach(b => {
-  const g = byKey.get(key(b.date, b.no)); if (!g) return;
-  const want = [b.a, b.b].filter(s => s.t).map(s => norm(s.t));
-  if (!want.length) return;
-  const got = [g.home, g.away].filter(Boolean).map(norm);
-  want.forEach(w => { if (!got.includes(w)) nameMismatch.push(`${key(b.date, b.no)} に ${w} がいない [${got}]`); });
+bracket.games.filter(b => b.r === 1).forEach(b => {
+  const r = resolved.get(key(b.date, b.no));
+  const want = [norm(b.a.t), norm(b.b.t)].sort();
+  const got = r.game ? [norm(r.game.home), norm(r.game.away)].sort() : null;
+  if (!got || got[0] !== want[0] || got[1] !== want[1])
+    nameMismatch.push(`${want.join(' vs ')} → ${got ? got.join(' vs ') : '見つからない'}`);
 });
-eq('1回戦・シードの校名が一致', nameMismatch, []);
+eq('1回戦17試合がそのまま実在する', nameMismatch, []);
 
 console.log('\n[5] 勝者参照が迷子になっていない');
 const keys = new Set(bracket.games.map(b => key(b.date, b.no)));
@@ -82,11 +105,11 @@ const dangling = [];
 bracket.games.forEach(b => [b.a, b.b].forEach(s => { if (s.w && !keys.has(s.w)) dangling.push(s.w); }));
 eq('参照先はすべて実在', dangling, []);
 // 3回戦の8試合から木をたどると、ちょうど49枚の葉が bracket.order の順に並ぶ
-const gByKey = new Map(bracket.games.map(b => [key(b.date, b.no), b]));
+const gByKey2 = new Map(bracket.games.map(b => [key(b.date, b.no), b]));
 const leaves = [];
 const walk = side => {
   if (side.t != null) { leaves.push(side.t); return; }
-  const g = gByKey.get(side.w);
+  const g = gByKey2.get(side.w);
   if (!g) return;
   walk(g.a); walk(g.b);
 };

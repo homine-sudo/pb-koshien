@@ -157,10 +157,22 @@ function mergeGame(prev, next) {
   // 前回ぶんを土台にして、今回読めたぶんを上書きしていく
   const byId = new Map(prevGames.map(g => [g.id, g]));
   fresh.forEach(f => { const { _partial, ...clean } = f; byId.set(f.id, mergeGame(byId.get(f.id), clean)); });
-  const all = [...byId.values()];
+  let all = [...byId.values()];
 
   // 今回まったく読めなかった試合（前回はあった）＝ページの形が変わったサイン
   const vanished = prevGames.filter(g => !seen.has(g.id));
+
+  // 雨で中止になった試合は、後日**別のID**で作り直される（2026-08-12 に実際に起きた）。
+  // 中止のほうを残すと、同じカードが2つ＝49試合になり、回戦の数が合わなくなる。
+  // 組み直されたほうがあるなら、中止のほうは落とす。
+  const superseded = [];
+  const card = g => (g.home && g.away) ? [g.home, g.away].sort().join(' / ') : null;
+  const live = new Set(all.filter(g => !/中止/.test(g.status)).map(card).filter(Boolean));
+  all = all.filter(g => {
+    if (!/中止/.test(g.status) || !live.has(card(g))) return true;
+    superseded.push(g);
+    return false;
+  });
 
   all.sort((a, b) => {
     const r = ROUND_ORDER.indexOf(a.round) - ROUND_ORDER.indexOf(b.round);
@@ -186,6 +198,10 @@ function mergeGame(prev, next) {
     console.error(`\n⚠ 今回のページから消えていた試合が ${vanished.length} 件あります（前回ぶんを残しました）`);
     vanished.forEach(g => console.error(`   ${g.date} ${g.round}${g.no} ${g.home} vs ${g.away}`));
   }
+  if (superseded.length) {
+    console.log(`\n中止のあと組み直された試合が ${superseded.length} 件ありました（中止のほうを外しました）`);
+    superseded.forEach(g => console.log(`   ${g.date} ${g.round}${g.no} ${g.home} vs ${g.away}`));
+  }
   if (all.length !== EXPECT || shortRounds.length) {
     console.error(`\n⚠ 試合数が ${all.length} 件です（予定は ${EXPECT} 件）`);
     shortRounds.forEach(r => console.error(`   ${r.round}: ${r.n}（予定 ${ROUND_N[r.round]}）`));
@@ -195,7 +211,8 @@ function mergeGame(prev, next) {
     source: 'https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/',
     fetchedAt: new Date().toISOString(),
     counts: { games: all.length, expected: EXPECT, paired, decided,
-              broken: broken.length, vanished: vanished.length },
+              broken: broken.length, vanished: vanished.length,
+              superseded: superseded.length },
     byRound,
     games: all
   };
