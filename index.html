@@ -740,7 +740,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-14';
+const APP_VERSION = '2026-08-14b';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -2848,9 +2848,44 @@ function updateDemoBar(){
 /* ============================================================
    起動
    ============================================================ */
+/* ============================================================
+   ?diag=1 で出る検査パネル。
+   「ナビが画面の一番下にない」という報告が手元で再現しないので、
+   実機の数字をそのまま見えるようにする。ふだんは一切出ない。
+   ============================================================ */
+function startDiag(){
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;z-index:999;background:rgba(10,22,36,.92);'
+    + 'color:#fff;font:11px/1.5 monospace;padding:8px 10px;border-radius:8px;white-space:pre;pointer-events:none';
+  document.body.appendChild(box);
+  const tick = ()=>{
+    const n  = document.getElementById('nav');
+    const r  = n.getBoundingClientRect();
+    const cs = getComputedStyle(n);
+    const vv = window.visualViewport;
+    box.textContent =
+      `position   : ${cs.position}\n` +
+      `nav 下端   : ${Math.round(r.bottom)}\n` +
+      `画面の高さ : ${window.innerHeight}` +
+      (vv ? `  (visual ${Math.round(vv.height)} / offset ${Math.round(vv.offsetTop)})` : '') + `\n` +
+      `ズレ       : ${Math.round(r.bottom - window.innerHeight)}  ${Math.abs(r.bottom-window.innerHeight)<2?'← 一番下にある':'← ずれている'}\n` +
+      `scrollY    : ${Math.round(window.scrollY)} / 全体 ${document.documentElement.scrollHeight}\n` +
+      `倍率       : ${(vv? (vv.scale||1):1)}   幅 ${window.innerWidth}`;
+  };
+  tick();
+  addEventListener('scroll', tick, {passive:true});
+  addEventListener('resize', tick);
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize', tick);
+    visualViewport.addEventListener('scroll', tick);
+  }
+  setInterval(tick, 500);
+}
+
 (function init(){
   // 管理モードの有効化 / 解除（パスコードつき）
   const qs = new URLSearchParams(location.search);
+  if(qs.get('diag')==='1') setTimeout(startDiag, 300);
   if(qs.get('admin')==='0'){ localStorage.removeItem(LS_ADMIN); localStorage.removeItem(LS_PASS); }
   if(qs.get('admin')==='1' && localStorage.getItem(LS_ADMIN)!=='1'){
     const saved = localStorage.getItem(LS_PASS);
