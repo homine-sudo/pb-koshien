@@ -1,10 +1,10 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-15T11:06:30.246Z",
+ "fetchedAt": "2026-08-15T11:31:13.229Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 42,
+  "paired": 43,
   "decided": 37,
   "broken": 0,
   "vanished": 0,
@@ -546,7 +546,7 @@
    "date": "2026-08-18",
    "round": "準々決勝",
    "no": "第2試合",
-   "home": null,
+   "home": "仙台育英 （宮城）",
    "away": "智弁和歌山 （和歌山）",
    "homeScore": null,
    "awayScore": null,
