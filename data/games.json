@@ -1,10 +1,10 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-15T07:19:18.388Z",
+ "fetchedAt": "2026-08-15T07:47:40.471Z",
  "counts": {
   "games": 48,
   "expected": 48,
-  "paired": 41,
+  "paired": 42,
   "decided": 36,
   "broken": 0,
   "vanished": 0,
@@ -535,7 +535,7 @@
    "round": "準々決勝",
    "no": "第1試合",
    "home": "天理 （奈良）",
-   "away": null,
+   "away": "三重 （三重）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
