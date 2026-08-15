@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-15T13:37:51.921Z",
+ "fetchedAt": "2026-08-15T22:34:46.153Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -486,8 +486,8 @@
    "date": "2026-08-16",
    "round": "3回戦",
    "no": "第1試合",
-   "home": "佐野日大 （栃木）",
-   "away": "健大高崎 （群馬）",
+   "home": "健大高崎 （群馬）",
+   "away": "佐野日大 （栃木）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
