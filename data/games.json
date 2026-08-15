@@ -1,11 +1,11 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-15T05:10:51.251Z",
+ "fetchedAt": "2026-08-15T07:19:18.388Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 41,
-  "decided": 35,
+  "decided": 36,
   "broken": 0,
   "vanished": 0,
   "superseded": 1
@@ -464,10 +464,10 @@
    "no": "第3試合",
    "home": "三重 （三重）",
    "away": "履正社 （大阪）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 5,
+   "awayScore": 2,
+   "winner": "三重 （三重）",
+   "status": "試合終了"
   },
   {
    "id": "2021048516",
