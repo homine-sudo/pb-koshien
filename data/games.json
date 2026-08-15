@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-15T04:06:41.507Z",
+ "fetchedAt": "2026-08-15T05:10:51.251Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 41,
-  "decided": 34,
+  "decided": 35,
   "broken": 0,
-  "vanished": 1,
+  "vanished": 0,
   "superseded": 1
  },
  "byRound": [
@@ -452,10 +452,10 @@
    "no": "第2試合",
    "home": "敦賀気比 （福井）",
    "away": "智弁和歌山 （和歌山）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 3,
+   "awayScore": 7,
+   "winner": "智弁和歌山 （和歌山）",
+   "status": "試合終了"
   },
   {
    "id": "2021048515",
@@ -547,7 +547,7 @@
    "round": "準々決勝",
    "no": "第2試合",
    "home": null,
-   "away": null,
+   "away": "智弁和歌山 （和歌山）",
    "homeScore": null,
    "awayScore": null,
    "winner": null,
