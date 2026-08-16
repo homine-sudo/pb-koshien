@@ -1,13 +1,13 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-16T01:09:35.082Z",
+ "fetchedAt": "2026-08-16T01:52:57.598Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 43,
   "decided": 38,
   "broken": 0,
-  "vanished": 0,
+  "vanished": 1,
   "superseded": 1
  },
  "byRound": [
@@ -570,7 +570,7 @@
    "date": "2026-08-18",
    "round": "準々決勝",
    "no": "第4試合",
-   "home": null,
+   "home": "健大高崎 （群馬）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
