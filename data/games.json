@@ -1,6 +1,6 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-16T05:48:20.717Z",
+ "fetchedAt": "2026-08-16T06:14:33.415Z",
  "counts": {
   "games": 48,
   "expected": 48,
@@ -558,7 +558,7 @@
    "date": "2026-08-18",
    "round": "準々決勝",
    "no": "第3試合",
-   "home": null,
+   "home": "花巻東 （岩手）",
    "away": null,
    "homeScore": null,
    "awayScore": null,
