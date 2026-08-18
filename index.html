@@ -740,7 +740,7 @@ label.lb{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin
 
 <script>
 'use strict';
-const APP_VERSION = '2026-08-14b';
+const APP_VERSION = '2026-08-16';
 
 /* 新しい版が出ていたら知らせる（ブラウザが古い版をため込むため） */
 function checkForUpdate(){
@@ -1703,6 +1703,35 @@ function btTree(){
   return (row===49) ? roots : null;        // 49行にならなければ表が壊れている
 }
 
+/* 準々決勝から先。ここはくじ引きなので枝が固定できない。
+   そこで **実際に決まった組み合わせに合わせて毎回組み直す**。
+   決勝の顔ぶれから準決勝を、準決勝の顔ぶれから準々決勝を選んで並べる。
+   まだ抽選前のところは、決まっている順に並べておく。 */
+function btLate(){
+  ensureMatches();
+  const qf = ST.matches.filter(m=>m.r===3);
+  const sf = ST.matches.filter(m=>m.r===4);
+  const fn = ST.matches.filter(m=>m.r===5)[0] || null;
+  if(!qf.length || !qf.some(m=>m.a!=null || m.b!=null)) return null;   // まだ何も決まっていない
+
+  const qfPool = qf.slice(), sfPool = sf.slice();
+  const take = (pool, side) => {                       // その校を勝ち上がらせた試合を取る
+    if(side!=null){ const i = pool.findIndex(m=>m.w!=null && m.w===side); if(i>=0) return pool.splice(i,1)[0]; }
+    return pool.shift() || null;
+  };
+  let row = 0;
+  const leaf = idx => { row++;
+    return {kind:'t', name:(idx!=null&&idx>=0)?TEAMS[idx].name:'未定', idx:(idx==null?-1:idx),
+            win:(idx==null?null:idx), start:row, rows:1, center:0.5}; };
+  const join = (m, a, b) => ({kind:'m', g:{date:(m&&m.d)||'', no:(m&&m.n)||''}, m:m||null,
+            a, b, win:(m&&m.w!=null)?m.w:null, start:a.start, rows:a.rows+b.rows,
+            center:(a.center + a.rows + b.center)/2});
+  const mkQF = m => join(m, leaf(m?m.a:null), leaf(m?m.b:null));
+  const mkSF = m => join(m, mkQF(take(qfPool, m?m.a:null)), mkQF(take(qfPool, m?m.b:null)));
+  const root = join(fn, mkSF(take(sfPool, fn?fn.a:null)), mkSF(take(sfPool, fn?fn.b:null)));
+  return row===8 ? root : null;
+}
+
 function renderBracketTree(){
   const host = document.getElementById('br-tree');
   const modes = document.getElementById('br-modes');
@@ -1716,7 +1745,7 @@ function renderBracketTree(){
 
   const myP = myPlayer();
   const myPicks = myP && Array.isArray(myP.picks) ? myP.picks : null;
-  const cells = [];
+  let cells = [];
 
   /* 学校（左端の列） */
   const team = n => {
@@ -1749,7 +1778,7 @@ function renderBracketTree(){
     const label = wIdx!=null
       ? `<b>${esc(TEAMS[wIdx].name)}</b>${sc && sc.hs!=null && sc.as!=null
             ? `<u>${Math.max(sc.hs,sc.as)}-${Math.min(sc.hs,sc.as)}</u>` : ''}`
-      : `${mdOf(day)} 第${no}`;
+      : (day ? `${mdOf(day)} 第${no}` : '未定');
     // 縦線は真ん中で上下に分け、勝ち上がった側の半分だけ明るくする
     const mid = n.center;
     cells.push(`<div class="bt-m ${wIdx!=null?'done':''}" style="grid-column:${col};grid-row:${n.start}/span ${n.rows}">
@@ -1767,13 +1796,25 @@ function renderBracketTree(){
     match(n, col);
   };
   roots.forEach(r=> walk(r, 4));           // 3回戦=4列目 / 2回戦=3 / 1回戦=2 / 学校=1
+  const main = cells.join('');
+
+  // 準々決勝から先は別の図にする（くじ引きなので上の図とはつながらない）
+  cells = [];
+  const late = btLate();
+  if(late) walk(late, 4);                  // 決勝=4列目 / 準決勝=3 / 準々決勝=2 / 学校=1
+  const lateHtml = late
+    ? `<div class="bt-leg" style="padding-top:14px"><b>準々決勝から先</b>　勝った学校が試合後にくじを引いて決めます。
+        上の図とはつながりません。</div>
+       <div class="bt-wrap"><div class="bt">${cells.join('')}</div></div>`
+    : '';
 
   const legend = myPicks
     ? `<div class="bt-leg">校名の右の数字は <b>${esc(ME)}</b> さんがつけた点。<b>1つ勝つたびにその点が入ります。</b></div>`
     : ((ST.players||[]).length ? `<div class="bt-leg">「順位」タブで自分の名前を選ぶと、校名の横に<b>自分がつけた点</b>が出ます。</div>` : '');
   host.innerHTML = legend +
-    `<div class="bt-wrap"><div class="bt">${cells.join('')}</div></div>` +
-    `<div class="bt-leg">上が1塁側。${esc(BRACKET.note||'')}</div>`;
+    `<div class="bt-wrap"><div class="bt">${main}</div></div>` +
+    `<div class="bt-leg">上が1塁側。${esc(BRACKET.note||'')}</div>` +
+    lateHtml;
 }
 
 function resetBracket(){
