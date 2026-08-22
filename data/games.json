@@ -1,11 +1,11 @@
 {
  "source": "https://baseball.yahoo.co.jp/hsb_summer/schedule/competition/",
- "fetchedAt": "2026-08-20T06:18:42.808Z",
+ "fetchedAt": "2026-08-22T03:29:00.633Z",
  "counts": {
   "games": 48,
   "expected": 48,
   "paired": 48,
-  "decided": 47,
+  "decided": 48,
   "broken": 0,
   "vanished": 0,
   "superseded": 1
@@ -608,10 +608,10 @@
    "no": "第1試合",
    "home": "智弁和歌山 （和歌山）",
    "away": "健大高崎 （群馬）",
-   "homeScore": null,
-   "awayScore": null,
-   "winner": null,
-   "status": "見どころ"
+   "homeScore": 4,
+   "awayScore": 3,
+   "winner": "智弁和歌山 （和歌山）",
+   "status": "試合終了"
   }
  ]
 }
